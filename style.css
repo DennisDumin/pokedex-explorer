@@ -142,6 +142,10 @@ border: none;
     z-index: 9999;
 }
 
+#overlay.is-visible {
+    display: flex;
+}
+
 #loader {
 text-align: center;
 }
@@ -182,6 +186,15 @@ text-align: center;
     background-color: rgb(192 37 51);
 }
 
+.load-more-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.load-more-button:disabled:hover {
+    background-color: #45b74a;
+}
+
 .load-button-section {
     display: flex;
     justify-content: center;
@@ -205,6 +218,58 @@ align-items: center;
 .cursor {
     cursor: pointer;
     border-radius: 10px;
+}
+
+/* Request feedback */
+
+.request-error {
+    position: fixed;
+    top: 16px;
+    left: 50%;
+    z-index: 10000;
+    display: flex;
+    width: min(620px, calc(100% - 32px));
+    margin: 0;
+    padding: 16px;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    color: white;
+    background-color: rgba(34, 34, 34, 0.95);
+    border: 2px solid rgb(192, 37, 51);
+    border-radius: 10px;
+    transform: translateX(-50%);
+}
+
+.request-error[hidden] {
+    display: none;
+}
+
+#request-retry-button {
+    flex-shrink: 0;
+    padding: 10px 16px;
+    color: white;
+    font: inherit;
+    font-weight: 700;
+    background-color: #45b74a;
+    border: 0;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+#request-retry-button:hover {
+    background-color: rgb(192, 37, 51);
+}
+
+#request-retry-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
+#request-retry-button:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 3px;
 }
 
 /*Seach Pokemon */

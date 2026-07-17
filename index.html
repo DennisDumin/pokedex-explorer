@@ -39,6 +39,10 @@
         <div id="show-big-card" onclick="doNotClose(event)"></div>
     </section>
     <!-------------------------------------------------------------------------->
+    <div id="request-error" class="request-error" role="alert" aria-live="assertive" aria-atomic="true" hidden>
+        <p id="request-error-message"></p>
+        <button id="request-retry-button" type="button" hidden>Try again</button>
+    </div>
     <!---------------------Loading Button------------------>
     <div class="load-button-section">
         <button id="load-more-button" class="load-more-button">
@@ -57,10 +61,10 @@
             </div>
         </button>
     </div>
-    <div id="overlay">
-        <div id="loader">
-            <img src="./img/pokeball-icon.svg" alt="Loading..." />
-            <p id="loading-dots">Loading...</p>
+    <div id="overlay" aria-hidden="true">
+        <div id="loader" role="status" aria-live="polite" aria-label="Loading Pokemon data" aria-atomic="true">
+            <img src="./img/pokeball-icon.svg" alt="" aria-hidden="true" />
+            <p id="loading-dots" aria-hidden="true">Loading...</p>
         </div>
     </div>
     <!------------------------------------------>
