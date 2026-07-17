@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex</title>
+    <script src="script.js"></script>
+    <script src="pokemonBigCard.js"></script>
+    <script src="pokemonBigCardHTML.js"></script>
+    <script src="pokemonCardMenu.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="pokemonBigCard.css">
+    <link rel="stylesheet" href="fonts.css">
+    <link rel="stylesheet" href="mediaQuieries.css">
+    <link rel="icon" type="image/x-icon" href="./img/pokeball.png">
+
+</head>
+
+<body onload="loadPokemonApi()" id="Body">
+    <!-------------Header----------->
+    <header>
+        <div class="header-logo">
+            <img src="./img/pokeball.png" height="62px">
+            <h1>Pokédex</h1>
+        </div>
+        <div class="search">
+            <form action="#">
+                <div class="inputWithReset">
+                    <input type="text" placeholder="Search Pokémon..." id="Search_Pokemon" oninput="filterPokemon()" />
+                    <input type="reset" value="X" id="Reset_Btn" onclick="resetFilter()"/>
+                    <div id="filterMessage"></div>
+                </div>
+            </form>
+        </div>
+    </header>
+    <!------------------------------------------>
+    <!------------Pokemon Small Card Section------------->
+    <section class="show-all-pokemon">
+        <div id="pokemon-card" class="pokemon-card-section">
+        </div>
+    </section>
+    <!------------------------------------------>
+    <!----------------Pokemon Big Card Section----------------->
+    <section id="big-card-background" onclick="closeBigCard()">
+        <div id="show-big-card" onclick="doNotClose(event)"></div>
+    </section>
+    <!-------------------------------------------------------------------------->
+    <!---------------------Loading Button------------------>
+    <div class="load-button-section">
+        <button id="load-more-button" class="load-more-button">
+            <div class="load-more">
+                <label for="amountSelect">Load more Pokemon:</label>
+                <select id="amountSelect" onchange="switchAmount()" class="cursor">
+                    <option value="0">0</option>
+                    <option value="20">20</option>
+                    <option value="40">40</option>
+                    <option value="60">60</option>
+                    <option value="80">80</option>
+                    <option value="100">100</option>
+                    <option value="150">150</option>
+                    <option value="200">200</option>
+                </select>
+            </div>
+        </button>
+    </div>
+    <div id="overlay">
+        <div id="loader">
+            <img src="./img/pokeball-icon.svg" alt="Loading..." />
+            <p id="loading-dots">Loading...</p>
+        </div>
+    </div>
+    <!------------------------------------------>
+</body>
+
+</html>

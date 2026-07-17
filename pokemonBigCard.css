@@ -1,0 +1,208 @@
+/*One Pokemon Card*/
+.overlayClass {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 888;
+}
+
+.show-big-card {
+  z-index: 888;
+  height: 640px;
+  width: 450px;
+  color: black;
+  border-radius: 15px;
+}
+
+/*Card*/
+.OnePokemonCard {
+  height: 100%;
+  border-radius: 15px;
+}
+
+.mainInfo {
+  height: 50%;
+}
+
+.close-OnePokemonCard {
+  border-radius: 30px;
+  cursor: pointer;
+  border: 2px solid white;
+  filter: drop-shadow(0px 1px 3px black);
+  height: 50px;
+}
+
+.CrossAndArrowDiv {
+  display: flex;
+  justify-content: space-between;
+  padding-inline: 15px;
+  padding-top: 10px;
+}
+
+.arrowDiv {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.arrowDiv img {
+  width: 50px;
+  height: 50px;
+  cursor: pointer;
+  border-radius: 50px;
+  filter: drop-shadow(0px 1px 4px black);
+}
+
+.OnePokemonCard .arrangeNameAndId {
+  display: flex;
+  justify-content: space-around;
+  color: white;
+  padding-top: 15px;
+  align-items: center;
+  gap: 40px;
+}
+
+.OnePokemonCard-Name {
+  font-size: 25px;
+  font-weight: bold;
+  width: fit-content;
+  border-radius: 15px;
+  padding-inline: 5px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.OnePokemonCard-Image {
+  width: 200px;
+  position: relative;
+  bottom: 35px;
+  left: 30%;
+  z-index: 888;
+}
+
+.OnePokemonCard-TypeImage {
+  width: 120px;
+  position: relative;
+  bottom: 120px;
+  left: 20%;
+}
+
+.infoContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 40px 40px 15px 15px;
+  height: 50%;
+}
+
+.stage {
+  height: 50px;
+  border-radius: 40px 40px 0 0;
+  border: 1px solid black;
+  flex: 0 0 auto;
+}
+
+.infoContainer nav {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  margin-inline: 25px;
+  box-shadow: 0 -1px #cec5c5 inset;
+  flex: 0 0 auto;
+}
+
+.infoContainer nav div {
+  cursor: pointer;
+}
+
+.infoContainer nav div h3 {
+  font-weight: 400;
+}
+
+.selectedMenuPoint {
+  font-weight: 600;
+  border-bottom: 2px solid rgb(206,197,197);
+  padding-bottom: 4px;
+}
+
+/*Content Pokemon Info*/
+#content {
+  display: flex;
+  flex: 1 1 auto;
+  overflow: auto;
+  margin: 7px;
+}
+
+/*Menu-Point About*/
+.generalInformation {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.answers {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-left: 50px;
+}
+
+/*Menu-Point Base Stats*/
+.baseStats {
+  width: 20%;
+}
+
+.baseStatsTable {
+  width: 80%;
+}
+
+/*Base Stats Table*/
+.progress {
+  width: 100%;
+  background-color: lightgray;
+  margin-block: 11px;
+}
+
+.bar {
+  height: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: whitesmoke;
+  font-weight: 700;
+}
+
+/*Menu-Point Evolution*/
+.StageOfDev {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.StageOfDev img {
+  width: 100px;
+}
+
+.evolutionArrow {
+  height: 24px;
+}
+
+.pokemonEvolutionClass {
+  align-items: center;
+  justify-content: space-evenly;
+}
+
+/*Menu-Point Moves*/
+.arrangeMoveSection {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.arrangeBaseStats {
+  display: flex;
+}

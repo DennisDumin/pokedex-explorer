@@ -1,0 +1,29 @@
+@media (max-width: 460px) {
+    .show-big-card {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+}
+
+@media (max-width: 400px) {
+    .StageOfDev img {
+        width: 80px;
+    }
+    .evolutionArrow {
+        height: 24px;
+        width: 24px;
+    }
+    .infoContainer nav { 
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 350px) {
+    .infoContainer nav {
+        margin-inline: 5px;
+     
+    }
+    .StageOfDev img {
+        width: 60px;
+    }
+}

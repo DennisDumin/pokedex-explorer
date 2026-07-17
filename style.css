@@ -1,0 +1,257 @@
+body {
+    margin: 0;
+    font-family: 'lato';
+    background-image: url(./img/background.jpg);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* Header */
+
+header {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+header h1 {
+    color: white;
+}
+
+.header-logo {
+    display: flex;
+    gap: 16px;
+    padding-left: 16px;
+    padding-top: 16px;
+}
+
+.search {
+display: flex;
+text-align: center;
+margin-bottom: 24px;
+margin-top: 8px;
+align-items: center;
+justify-content: center;
+flex-direction: column;
+box-sizing: border-box;
+color: white;
+}
+
+.search-input {
+border-radius: 16px;
+margin-bottom: 8px;
+border: none;
+}
+
+/*Pokemon Content*/
+
+.show-all-pokemon {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.pokedex {
+    width: 240px;
+    height: 240px;
+    background-color: #FF421C;
+    color: white;
+    border-radius: 10px;
+    padding: 10px;
+    cursor: pointer;
+    transition: filter 1s ease, transform 1s ease;
+}
+
+.name-number {
+    display: flex;
+    justify-content: space-around;
+    color: white;
+    align-items: center;
+}
+
+.pokemon-img {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pokemon-img img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}
+
+.pokemon-type {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+}
+
+.type {
+    border-radius: 10px;
+    width: fit-content;
+    padding: 4px;
+    color: whitesmoke;
+    font-weight: 600
+}
+
+.pokedex h1 {
+    display: flex;
+    justify-content: space-around;
+    color: white;
+}
+
+.pokedex p {
+    border-radius: 15px;
+    padding-inline: 5px;
+    height: fit-content;
+}
+
+.info-container {
+    background-color: white;
+    border-top-left-radius: 40px;
+    border-top-right-radius: 40px;
+    margin-top: -40px;
+    min-height: 100px;
+
+}
+
+.pokemon-card-section {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: center;
+}
+
+
+/* ladebildschirm */
+
+#overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.5); /* Halbtransparenter Hintergrund */
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#loader {
+text-align: center;
+}
+
+#loader img {
+    width: 100px;
+    height: 100px;
+    animation: spin 2s linear infinite;
+    position: relative;
+    z-index: 9999;
+}
+
+#loader p {
+    color: white;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/*Load-More-Button*/
+.load-more-button {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 10px;
+    padding: 16px;
+    background-color: #45b74a;
+    font-size: 17px;
+    transition: background-color 0.3s;
+    border: none;
+    color: white;
+}
+
+.load-more-button:hover {
+    background-color: rgb(192 37 51);
+}
+
+.load-button-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+}
+
+p {
+margin-block-start: 5px;
+    margin-block-end: 5px;
+}
+
+.load-more {
+display: flex;
+justify-content: center;
+gap: 2px;
+color: white;
+align-items: center;
+}
+
+.cursor {
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+/*Seach Pokemon */
+
+#Search_Pokemon {
+    padding: 10px;
+    border-radius: 15px;
+    border: none;
+  }
+  
+  .inputWithReset {
+    position: relative;
+    display: inline-block;
+    align-items: center;
+  }
+  #Reset_Btn {
+    position: absolute;
+    top: 10px;
+    right: 5px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: none;
+  }
+
+  #filterMessage {
+    padding-top: 8px;
+  }
+
+ /* Scrollbalken */
+
+  /* Breite und Farbe des Scrollbalkens */
+::-webkit-scrollbar {
+    width: 10px; /* Breite des Scrollbalkens */
+}
+
+/* Track (Hintergrund) */
+::-webkit-scrollbar-track {
+    background: #000000; /* Farbe des Hintergrunds */
+}
+
+/* Handle (Scrollbalken) */
+::-webkit-scrollbar-thumb {
+    background: #888; /* Farbe des Scrollbalkens */
+}
+
+/* Handle on hover (Scrollbalken beim Überfahren mit der Maus) */
+::-webkit-scrollbar-thumb:hover {
+    background: #555; /* Farbe des Scrollbalkens beim Überfahren mit der Maus */
+}
