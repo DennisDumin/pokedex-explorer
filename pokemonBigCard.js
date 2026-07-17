@@ -1,3 +1,20 @@
+import {
+  allPokemon,
+  currentPokemon,
+  errorFunction,
+  getPokemonImage,
+  getPokemonName,
+  getPokemonNumber,
+  getTypeColor,
+} from './script.js';
+import { cardHTML } from './pokemonBigCardHTML.js';
+import {
+  generateAboutHTML,
+  generateBaseStatsHTML,
+  generateEvoltionChainNr,
+  generateMovesHTML,
+} from './pokemonCardMenu.js';
+
 /*Show Pokemon Infos*/
 async function renderOneCard(i) {
   document.getElementById("big-card-background").style.display = "flex";
@@ -131,3 +148,12 @@ function closeBigCard() {
 function doNotClose(event) {
   event.stopPropagation();
 }
+
+export {
+  closeBigCard,
+  closeCard,
+  doNotClose,
+  renderMenuPointContent,
+  renderOneCard,
+  resolve,
+};

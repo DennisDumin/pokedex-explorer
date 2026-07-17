@@ -230,3 +230,22 @@ function resetFilter() {
     input.value = "";
     filterPokemon(); 
 }
+
+export {
+    allPokemon,
+    animateLoadingDots,
+    checkIfType1Available,
+    currentPokemon,
+    errorFunction,
+    filterPokemon,
+    getPokemonImage,
+    getPokemonName,
+    getPokemonNumber,
+    getTypeColor,
+    loadPokemonApi,
+    resetFilter,
+    showGif,
+    showImg,
+    stopAnimateLoadingDots,
+    switchAmount,
+};

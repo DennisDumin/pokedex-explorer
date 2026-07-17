@@ -1,3 +1,12 @@
+import {
+  animateLoadingDots,
+  errorFunction,
+  getPokemonImage,
+  getPokemonName,
+  stopAnimateLoadingDots,
+} from './script.js';
+import { resolve } from './pokemonBigCard.js';
+
 /*Menu-Point About */
 async function generateAboutHTML(currentPokemon, i) {
   let contentContainer = document.getElementById("content");
@@ -296,3 +305,10 @@ function generateMovesHTML(currentPokemon) {
       `;
   }
 }
+
+export {
+  generateAboutHTML,
+  generateBaseStatsHTML,
+  generateEvoltionChainNr,
+  generateMovesHTML,
+};

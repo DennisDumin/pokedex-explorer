@@ -1,3 +1,5 @@
+import { checkIfType1Available } from './script.js';
+
 function cardHTML(backgroundColor, backgroundColor0, lastId, i, nextId, backgroundColor1, image, id, name, pokemonType1, pokemonType0) {
     return /*html*/ `
   
@@ -63,3 +65,5 @@ function cardHTML(backgroundColor, backgroundColor0, lastId, i, nextId, backgrou
     
           `;
   }
+
+export { cardHTML };
