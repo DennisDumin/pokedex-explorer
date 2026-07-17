@@ -1,21 +1,27 @@
 import {
-  animateLoadingDots,
-  errorFunction,
   getPokemonImage,
   getPokemonName,
-  stopAnimateLoadingDots,
 } from './script.js';
-import { resolve } from './pokemonBigCard.js';
+import {
+  getEvolutionChain,
+  getPokemonBatch,
+  getPokemonSpecies,
+  getResourceId,
+} from './src/api/pokemon-api.js';
 
 /*Menu-Point About */
-async function generateAboutHTML(currentPokemon, i) {
+async function generateAboutHTML(currentPokemon, isCurrentRequest = () => true) {
   let contentContainer = document.getElementById("content");
   contentContainer.innerHTML = ``;
 
   let height = getPokemonHeight(currentPokemon);
   let weight = getPokemonWeight(currentPokemon);
   let abilities = getPokemonAbilities(currentPokemon);
-  let eggGroup = await getPokemonEggGroups(i);
+  const speciesId = getResourceId(currentPokemon.species.url);
+  const species = await getPokemonSpecies(speciesId);
+  let eggGroup = getPokemonEggGroups(species);
+
+  if (!isCurrentRequest()) return;
 
   contentContainer.innerHTML = /*html*/ `
       <div class="generalInformation">
@@ -69,20 +75,17 @@ function getPokemonAbilities(currentPokemon) {
   return returnAbilities;
 }
 
-async function getPokemonEggGroups(i) {
-  let url = `https://pokeapi.co/api/v2/pokemon-species/${i + 1}`;
-  let response = await fetch(url).catch(errorFunction);
-  let currentPokemon = await response.json();
+function getPokemonEggGroups(species) {
   let eggGroups = [];
-  for (let j = 0; j < currentPokemon["egg_groups"].length; j++) {
-    const eggGroup = currentPokemon["egg_groups"][j]["name"];
+  for (let j = 0; j < species["egg_groups"].length; j++) {
+    const eggGroup = species["egg_groups"][j]["name"];
     eggGroups.push(eggGroup);
   }
   return eggGroups;
 }
 
 /*Menu-Point Base Stats*/
-async function generateBaseStatsHTML(currentPokemon) {
+async function generateBaseStatsHTML(currentPokemon, isCurrentRequest = () => true) {
   let contentContainer = document.getElementById("content");
   contentContainer.innerHTML = ``;
   let hpValue = await getBaseStats(currentPokemon, 0);
@@ -91,6 +94,9 @@ async function generateBaseStatsHTML(currentPokemon) {
   let specialAtk = await getBaseStats(currentPokemon, 3);
   let specialDef = await getBaseStats(currentPokemon, 4);
   let speedValue = await getBaseStats(currentPokemon, 5);
+
+  if (!isCurrentRequest()) return;
+
   contentContainer.innerHTML = /*html*/ `
       <div class="baseStats">
         <p>HP</p>
@@ -132,18 +138,17 @@ function getBarColor(value) {
 }
 
 /* Menu-Point Evolution*/
-async function generateEvoltionChainNr(i) {
-  loadingEvolutionChain();
-  let response = await fetch(
-    `https://pokeapi.co/api/v2/pokemon-species/${i + 1}`
+async function generateEvoltionChainNr(currentPokemon, isCurrentRequest = () => true) {
+  const speciesId = getResourceId(currentPokemon.species.url);
+  const species = await getPokemonSpecies(speciesId);
+
+  if (!isCurrentRequest()) return;
+
+  const evolutionChainNumber = getResourceId(species.evolution_chain.url);
+  await getPokemonOfOneEvolutionClass(
+    evolutionChainNumber,
+    isCurrentRequest,
   );
-  let currentPokemon = await response.json();
-
-  let url = currentPokemon["evolution_chain"]["url"];
-  let parts = url.split("/");
-  let evolutionChainNumber = Number(parts[parts.length - 2]);
-
-  await getPokemonOfOneEvolutionClass(evolutionChainNumber);
 }
 
 async function collectSpeciesID(currentPokemonChain) {
@@ -179,37 +184,31 @@ async function collectSpeciesID(currentPokemonChain) {
     currentPokemonChain["chain"]["species"]["url"].split("/");
   speciesIDs.push(urlComponents[urlComponents.length - 2]);
 
-  console.log(speciesIDs);
   return speciesIDs;
 }
 
-async function getPokemonOfOneEvolutionClass(currentEvolutionChainNumber) {
-  let pokemonID = [];
-  let pokemon = [];
-  let response = await fetch(
-    `https://pokeapi.co/api/v2/evolution-chain/${currentEvolutionChainNumber}/`
+async function getPokemonOfOneEvolutionClass(
+  currentEvolutionChainNumber,
+  isCurrentRequest = () => true,
+) {
+  const currentPokemonChain = await getEvolutionChain(
+    currentEvolutionChainNumber,
   );
 
-  let currentPokemonChain = await response.json();
-
   let speciesID = await collectSpeciesID(currentPokemonChain);
-  pokemonID = pokemonID.concat(speciesID);
+  const evolutionPokemon = await getPokemonBatch(speciesID.map(Number));
 
-  for (let id of pokemonID) {
-    let getNameUrl = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-    let getNameJSON = await getNameUrl.json();
-    let name = getPokemonName(getNameJSON);
-    let weight = weightToSortPokemon(getNameJSON);
-    let image = getPokemonImage(getNameJSON);
-    let mainPokemonType = getNameJSON["types"]["0"]["type"]["name"];
+  if (!isCurrentRequest()) return;
 
-    pokemon.push({
-      name: name,
-      weight: weight,
-      image: image,
-      type: mainPokemonType,
-    });
-  }
+  const pokemon = evolutionPokemon.map((entry) => {
+    return {
+      name: getPokemonName(entry),
+      weight: weightToSortPokemon(entry),
+      image: getPokemonImage(entry),
+      type: entry["types"]["0"]["type"]["name"],
+    };
+  });
+
   pokemon.sort((a, b) => a.weight - b.weight);
   generateEvolutionChainHTML(pokemon);
 }
@@ -232,13 +231,6 @@ function weightToSortPokemon(currentPokemon) {
   let weightInKG = currentPokemon["weight"] / 10;
 
   return weightInKG;
-}
-
-function loadingEvolutionChain() {
-  document.getElementById("content").innerHTML = ``;
-  document.body.style.overflow = 'hidden';
-  document.getElementById('overlay').style.display = 'flex';
-  animateLoadingDots();
 }
 
 function generateEvolutionChainHTMLFor3Pokemon(
@@ -288,9 +280,6 @@ function generateEvolutionChainHTMLFor2Pokemon(
         </div>
       `;
   }
-  stopAnimateLoadingDots();
-  document.getElementById('overlay').style.display = 'none';
-  document.body.style.overflow = 'auto';
 }
 
 /*Menu-Point Moves*/

@@ -1,12 +1,20 @@
 import {
-  allPokemon,
-  currentPokemon,
-  errorFunction,
   getPokemonImage,
   getPokemonName,
   getPokemonNumber,
   getTypeColor,
 } from './script.js';
+import { getPokemon } from './src/api/pokemon-api.js';
+import {
+  getLoadedPokemon,
+  getLoadedPokemonAt,
+} from './src/state/pokemon-store.js';
+import {
+  beginRequest,
+  clearRequestError,
+  showRequestError,
+} from './src/ui/request-feedback.js';
+import { acquireScrollLock } from './src/ui/scroll-lock.js';
 import { cardHTML } from './pokemonBigCardHTML.js';
 import {
   generateAboutHTML,
@@ -15,56 +23,60 @@ import {
   generateMovesHTML,
 } from './pokemonCardMenu.js';
 
+let detailRequestVersion = 0;
+let menuRequestVersion = 0;
+let releaseDetailScrollLock = null;
+
 /*Show Pokemon Infos*/
 async function renderOneCard(i) {
+  const requestVersion = ++detailRequestVersion;
+  menuRequestVersion += 1;
+  const storedPokemon = getLoadedPokemonAt(i);
+
+  if (!storedPokemon) return;
+
+  clearRequestError();
+  releaseDetailScrollLock ??= acquireScrollLock();
   document.getElementById("big-card-background").style.display = "flex";
   document.getElementById("big-card-background").classList.add("overlayClass");
-  document.documentElement.style.overflow = "hidden";
-  let lastId = await fetchPokemonLast(i);
-  let nextId = await fetchPokemonNext(i);
+  let lastId = fetchPokemonLast(i);
+  let nextId = fetchPokemonNext(i);
   let oneCardDiv = document.getElementById("show-big-card");
   oneCardDiv.classList.add("show-big-card");
-  let audio = new Audio(allPokemon[i]['cries']['latest']);
+  let audio = new Audio(storedPokemon['cries']['latest']);
   audio.volume = 0.25;
   audio.play();
 
-  let [resp, err] = await resolve(
-    fetch(`https://pokeapi.co/api/v2/pokemon/${i + 1}`)
-  );
-  if (resp) {
-    let currentPokemon = await resp.json();
-    generateCardHTML(currentPokemon, i, lastId, nextId);
-    renderMenuPointContent(1, i);
-  }
+  const finishRequest = beginRequest();
 
-  if (err) {
-    err.catch(errorFunction);
-  }
-}
-
-async function resolve(p) {
   try {
-    let response = await p;
-    return [response, null];
-  } catch (e) {
-    return [null, e];
+    const currentPokemon = await getPokemon(storedPokemon.id);
+
+    if (requestVersion !== detailRequestVersion) return;
+
+    generateCardHTML(currentPokemon, i, lastId, nextId);
+    await renderMenuPointContent(1, i, requestVersion);
+  } catch {
+    if (requestVersion === detailRequestVersion) {
+      showRequestError({
+        message: 'The Pokémon details could not be loaded. Please try again.',
+        onRetry: () => {
+          if (requestVersion !== detailRequestVersion) return Promise.resolve();
+          return renderOneCard(i);
+        },
+      });
+    }
+  } finally {
+    finishRequest();
   }
 }
 
-async function fetchPokemonLast(i) {
-  let lastId;
-  if ((i - 1) >= 0) { lastId = i - 1 }
-  else { lastId = allPokemon.length - 1 }
-  if (currentPokemon[lastId]) { }
-  return Number(lastId);
+function fetchPokemonLast(i) {
+  return i > 0 ? i - 1 : getLoadedPokemon().length - 1;
 }
 
-async function fetchPokemonNext(i) {
-  let nextId;
-  if ((i + 1) >= allPokemon.length) { nextId = 0 }
-  else { nextId = i + 1 };
-  if (currentPokemon[nextId]) { }
-  return Number(nextId);
+function fetchPokemonNext(i) {
+  return i + 1 >= getLoadedPokemon().length ? 0 : i + 1;
 }
 
 function generateCardHTML(currentPokemon, i, lastId, nextId) {
@@ -84,7 +96,11 @@ function generateCardHTML(currentPokemon, i, lastId, nextId) {
 
 /*Close Card*/
 function closeCard(i) {
-  document.documentElement.style.overflow = "unset";
+  detailRequestVersion += 1;
+  menuRequestVersion += 1;
+  clearRequestError();
+  releaseDetailScrollLock?.();
+  releaseDetailScrollLock = null;
   document.getElementById("big-card-background").classList.remove("overlayClass");
 
   let oneCardDiv = document.getElementById("show-big-card");
@@ -106,43 +122,66 @@ function changeMenuPoint(SelectedMenuPoint) {
     .classList.add("selectedMenuPoint");
 }
 
-async function renderMenuPointContent(Menupoint, i) {
+async function renderMenuPointContent(Menupoint, i, expectedDetailVersion = detailRequestVersion) {
+  const requestVersion = ++menuRequestVersion;
+  const storedPokemon = getLoadedPokemonAt(i);
+
+  if (!storedPokemon || expectedDetailVersion !== detailRequestVersion) return;
+
+  clearRequestError();
   document.getElementById("content").classList.remove("pokemonEvolutionClass");
   document.getElementById("content").classList.remove("arrangeMoveSection");
   changeMenuPoint(Menupoint);
 
-  let [resp, err] = await resolve(
-    fetch(`https://pokeapi.co/api/v2/pokemon/${i + 1}`)
-  );
-  if (resp) {
-    let currentPokemon = await resp.json();
+  const finishRequest = beginRequest();
+  const isCurrentRequest = () =>
+    requestVersion === menuRequestVersion &&
+    expectedDetailVersion === detailRequestVersion;
+
+  try {
+    const currentPokemon = await getPokemon(storedPokemon.id);
+
+    if (!isCurrentRequest()) return;
 
     if (Menupoint === 1) {
-      generateAboutHTML(currentPokemon, i);
+      await generateAboutHTML(currentPokemon, isCurrentRequest);
     }
 
     if (Menupoint === 2) {
-      generateBaseStatsHTML(currentPokemon);
+      await generateBaseStatsHTML(currentPokemon, isCurrentRequest);
     }
 
     if (Menupoint === 3) {
-      generateEvoltionChainNr(i);
+      await generateEvoltionChainNr(currentPokemon, isCurrentRequest);
+      if (!isCurrentRequest()) return;
       document.getElementById("content").classList.add("pokemonEvolutionClass");
     }
 
     if (Menupoint === 4) {
       generateMovesHTML(currentPokemon);
     }
-  }
-
-  if (err) {
-    err.catch(errorFunction);
+  } catch {
+    if (isCurrentRequest()) {
+      showRequestError({
+        message: 'The Pokémon information could not be loaded. Please try again.',
+        onRetry: () => {
+          if (!isCurrentRequest()) return Promise.resolve();
+          return renderMenuPointContent(Menupoint, i, expectedDetailVersion);
+        },
+      });
+    }
+  } finally {
+    finishRequest();
   }
 }
 
 function closeBigCard() {
+  detailRequestVersion += 1;
+  menuRequestVersion += 1;
+  clearRequestError();
+  releaseDetailScrollLock?.();
+  releaseDetailScrollLock = null;
   document.getElementById("big-card-background").style.display = "none";
-  document.documentElement.style.overflow = "unset";
 }
 
 function doNotClose(event) {
@@ -155,5 +194,4 @@ export {
   doNotClose,
   renderMenuPointContent,
   renderOneCard,
-  resolve,
 };
