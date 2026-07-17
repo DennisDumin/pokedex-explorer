@@ -1,69 +1,124 @@
 import { checkIfType1Available } from './script.js';
+import arrowLeftUrl from './img/arrow-left.svg';
+import arrowRightUrl from './img/arrow-right.svg';
+import closeIconUrl from './img/cross.svg';
 
-function cardHTML(backgroundColor, backgroundColor0, lastId, i, nextId, backgroundColor1, image, id, name, pokemonType1, pokemonType0) {
-    return /*html*/ `
-  
-    <main class="OnePokemonCard" ${backgroundColor} id="Pokemon_Card${i}">
+function cardHTML({
+  backgroundColor,
+  image,
+  imageIsAnimated,
+  index,
+  name,
+  nextIndex,
+  pokemonNumber,
+  primaryType,
+  primaryTypeColor,
+  previousIndex,
+  secondaryType,
+  secondaryTypeColor,
+  soundAvailable,
+}) {
+  const soundLabel = soundAvailable
+    ? `Play ${name}'s cry`
+    : `${name}'s cry is not available`;
+
+  return /* html */ `
+    <article class="OnePokemonCard" ${backgroundColor} data-pokemon-index="${index}">
       <section class="mainInfo">
-        <div class="CrossAndArrowDiv">
-          <div class="arrowDiv">
-          <img src="./img/arrow-left.svg"
-         id="Show_Previous${i}"
-         onclick="renderOneCard(${lastId})"
-         ${backgroundColor0}>
-            <img
-              src="./img/arrow-right.svg"
-              ${backgroundColor}
-              id="Show_Next${i}"
-              onclick="renderOneCard(${nextId})"
-            />
+        <div class="detail-toolbar">
+          <div class="detail-navigation" aria-label="Browse loaded Pokémon">
+            <button
+              class="detail-icon-button"
+              type="button"
+              data-action="previous"
+              data-index="${previousIndex}"
+              aria-label="Show previous Pokémon"
+            >
+              <img src="${arrowLeftUrl}" alt="" aria-hidden="true">
+            </button>
+            <button
+              class="detail-icon-button"
+              type="button"
+              data-action="next"
+              data-index="${nextIndex}"
+              aria-label="Show next Pokémon"
+            >
+              <img src="${arrowRightUrl}" alt="" aria-hidden="true">
+            </button>
           </div>
-          <img
-            src="./img/cross.svg"
-            ${backgroundColor1}
-            class="close-OnePokemonCard"
-            onclick="closeCard(${i})"
-          />
+          <button
+            class="detail-icon-button detail-close-button"
+            type="button"
+            data-action="close"
+            aria-label="Close Pokémon details"
+          >
+            <img src="${closeIconUrl}" alt="" aria-hidden="true">
+          </button>
         </div>
-    
-        <div class="arrangeNameAndId">
+
+        <div class="detail-heading">
           <div>
-            <p class="OnePokemonCard-Name" ${backgroundColor}>${name}</p>
-            <div class="pokemon-type">
-        <p class="type" ${backgroundColor0} id="pokemonNumber">${pokemonType0}</p>
-            ${checkIfType1Available(pokemonType1, backgroundColor1)}
-        </div>
+            <h2 id="pokemon-dialog-title" class="OnePokemonCard-Name">${name}</h2>
+            <div class="pokemon-type" aria-label="Types">
+              <span class="type" ${primaryTypeColor}>${primaryType}</span>
+              ${checkIfType1Available(secondaryType, secondaryTypeColor)}
+            </div>
           </div>
-          <p class="identification">${id}</p>
+          <span class="identification">${pokemonNumber}</span>
         </div>
-    
-        <figure>
-          <img src="${image}" class="OnePokemonCard-Image" />
-        </figure>
+
+        <img
+          src="${image}"
+          class="OnePokemonCard-Image${imageIsAnimated ? ' is-animated' : ''}"
+          alt="${name}"
+        >
+
+        <button
+          class="pokemon-sound-button"
+          type="button"
+          data-action="play-cry"
+          aria-label="${soundLabel}"
+          ${soundAvailable ? '' : 'disabled'}
+        >
+          <span aria-hidden="true">🔊</span>
+          <span>${soundAvailable ? 'Play cry' : 'Cry unavailable'}</span>
+        </button>
       </section>
-    
+
       <section class="infoContainer">
-        <div class="stage" ${backgroundColor}></div>
-        <nav>
-          <div onclick="renderMenuPointContent(1,${i})">
-            <h3 id="Menu_Point1" class="selectedMenuPoint">About</h3>
-          </div>
-          <div onclick="renderMenuPointContent(2,${i})">
-            <h3 id="Menu_Point2">Base Stats</h3>
-          </div>
-          <div onclick="renderMenuPointContent(3,${i})">
-            <h3 id="Menu_Point3">Evolution</h3>
-          </div>
-          <div onclick="renderMenuPointContent(4,${i})">
-            <h3 id="Menu_Point4">Moves</h3>
-          </div>
-        </nav>
-    
-        <span id="content"> </span>
+        <div class="detail-tabs" role="tablist" aria-label="Pokémon information">
+          ${generateTabButton(1, 'About', true)}
+          ${generateTabButton(2, 'Base stats')}
+          ${generateTabButton(3, 'Evolution')}
+          ${generateTabButton(4, 'Moves')}
+        </div>
+        <div
+          id="content"
+          class="detail-content"
+          role="tabpanel"
+          aria-live="polite"
+          aria-labelledby="pokemon-tab-1"
+        ></div>
       </section>
-    </main>
-    
-          `;
-  }
+    </article>
+  `;
+}
+
+function generateTabButton(menuPoint, label, isSelected = false) {
+  return /* html */ `
+    <button
+      id="pokemon-tab-${menuPoint}"
+      class="detail-tab${isSelected ? ' selectedMenuPoint' : ''}"
+      type="button"
+      role="tab"
+      data-menu-point="${menuPoint}"
+      aria-controls="content"
+      aria-selected="${isSelected}"
+      tabindex="${isSelected ? '0' : '-1'}"
+    >
+      ${label}
+    </button>
+  `;
+}
 
 export { cardHTML };

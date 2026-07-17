@@ -1,140 +1,98 @@
-import {
-  getPokemonImage,
-  getPokemonName,
-} from './script.js';
+import { getPokemonImage, getPokemonName } from './script.js';
+import evolutionArrowUrl from './img/arrow.svg';
+import pokemonFallbackUrl from './img/pokeball-icon.svg';
 import {
   getEvolutionChain,
   getPokemonBatch,
   getPokemonSpecies,
   getResourceId,
 } from './src/api/pokemon-api.js';
+import {
+  MAX_BASE_STAT,
+  formatHeight,
+  formatPokemonName,
+  formatWeight,
+  getStatColor,
+  normalizeBaseStat,
+} from './src/utils/formatters.js';
+import { collectEvolutionIds, parseEvolutionChain } from './src/utils/evolution.js';
 
 /*Menu-Point About */
 async function generateAboutHTML(currentPokemon, isCurrentRequest = () => true) {
-  let contentContainer = document.getElementById("content");
-  contentContainer.innerHTML = ``;
-
-  let height = getPokemonHeight(currentPokemon);
-  let weight = getPokemonWeight(currentPokemon);
-  let abilities = getPokemonAbilities(currentPokemon);
+  const contentContainer = document.getElementById('content');
+  const height = formatHeight(currentPokemon.height);
+  const weight = formatWeight(currentPokemon.weight);
+  const abilities = getPokemonAbilities(currentPokemon);
   const speciesId = getResourceId(currentPokemon.species.url);
   const species = await getPokemonSpecies(speciesId);
-  let eggGroup = getPokemonEggGroups(species);
+  const eggGroups = getPokemonEggGroups(species);
 
   if (!isCurrentRequest()) return;
 
   contentContainer.innerHTML = /*html*/ `
-      <div class="generalInformation">
-          <p>Height:</p>
-          <p>Weight:</p>
-          <p>Abilities:</p>
-          <p>Egg Group:</p>
-        </div>
-  
-        <div class="answers">
-          <p>${height}</p>
-          <p>${weight}</p>
-          <p>${abilities}</p>
-          <p>${eggGroup}</p>
-        </div>
+      <dl class="about-list">
+        <div><dt>Height</dt><dd>${height}</dd></div>
+        <div><dt>Weight</dt><dd>${weight}</dd></div>
+        <div><dt>Abilities</dt><dd>${abilities}</dd></div>
+        <div><dt>Egg groups</dt><dd>${eggGroups}</dd></div>
+      </dl>
     `;
 }
 
-function getPokemonHeight(currentPokemon) {
-  let heightInMeter = currentPokemon["height"] / 10;
-
-  let heightInFeet = (heightInMeter * 3.281).toFixed(2).replace(".", "´") + '"';
-
-  if (heightInMeter < 1) {
-    heightInMeter = heightInMeter * 100 + " cm";
-  } else {
-    heightInMeter = heightInMeter + " m";
-  }
-
-  return `${heightInFeet} (${heightInMeter})`;
-}
-
-function getPokemonWeight(currentPokemon) {
-  let weightInKG = currentPokemon["weight"] / 10;
-
-  let weightInPounds = (weightInKG * 0.453592).toFixed(2) + " lbs";
-
-  weightInKG = weightInKG.toString().replace(".", ",") + " Kg";
-
-  return `${weightInPounds} (${weightInKG})`;
-}
-
 function getPokemonAbilities(currentPokemon) {
-  let abilies = currentPokemon["abilities"];
-  let returnAbilities = [];
-  for (let i = 0; i < abilies.length; i++) {
-    const ability = abilies[i]["ability"]["name"];
+  const abilities = (currentPokemon.abilities ?? [])
+    .map((entry) => entry?.ability?.name)
+    .filter(Boolean)
+    .map(formatPokemonName);
 
-    returnAbilities.push(ability);
-  }
-  return returnAbilities;
+  return abilities.length > 0 ? abilities.join(', ') : 'Not available';
 }
 
 function getPokemonEggGroups(species) {
-  let eggGroups = [];
-  for (let j = 0; j < species["egg_groups"].length; j++) {
-    const eggGroup = species["egg_groups"][j]["name"];
-    eggGroups.push(eggGroup);
-  }
-  return eggGroups;
+  const eggGroups = (species.egg_groups ?? [])
+    .map((entry) => entry?.name)
+    .filter(Boolean)
+    .map(formatPokemonName);
+
+  return eggGroups.length > 0 ? eggGroups.join(', ') : 'Not available';
 }
 
 /*Menu-Point Base Stats*/
 async function generateBaseStatsHTML(currentPokemon, isCurrentRequest = () => true) {
-  let contentContainer = document.getElementById("content");
-  contentContainer.innerHTML = ``;
-  let hpValue = await getBaseStats(currentPokemon, 0);
-  let attackValue = await getBaseStats(currentPokemon, 1);
-  let defenseValue = await getBaseStats(currentPokemon, 2);
-  let specialAtk = await getBaseStats(currentPokemon, 3);
-  let specialDef = await getBaseStats(currentPokemon, 4);
-  let speedValue = await getBaseStats(currentPokemon, 5);
+  const contentContainer = document.getElementById('content');
+  const statLabels = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed'];
+  const stats = statLabels
+    .map((label, index) => getBaseStats(currentPokemon, index, label))
+    .join('');
 
   if (!isCurrentRequest()) return;
 
   contentContainer.innerHTML = /*html*/ `
-      <div class="baseStats">
-        <p>HP</p>
-        <p>Attack</p>
-        <p>Defense</p>
-        <p>Sp. Att</p>
-        <p>Sp. Def</p>
-        <p>Speed</p>
-      </div>
-    <div class="baseStatsTable">
-      ${hpValue}
-      ${attackValue}
-      ${defenseValue}
-      ${specialAtk}
-      ${specialDef}
-      ${speedValue}
-    </div>
+    <div class="base-stats-list">${stats}</div>
     `;
 }
 
-async function getBaseStats(currentPokemon, value) {
-  let stat = currentPokemon["stats"][value]["base_stat"];
-  let barColor = getBarColor(stat);
+function getBaseStats(currentPokemon, index, label) {
+  const stat = Number(currentPokemon.stats?.[index]?.base_stat) || 0;
+  const barColor = getStatColor(stat);
+  const barWidth = normalizeBaseStat(stat);
+
   return /*html*/ `
-    <div class="progress">
-      <div class="bar" style="width:${stat}%; background-color: ${barColor}">${stat}</div>
+    <div class="stat-row">
+      <span class="stat-label">${label}</span>
+      <strong class="stat-value">${stat}</strong>
+      <div
+        class="progress"
+        role="progressbar"
+        aria-label="${label}"
+        aria-valuemin="0"
+        aria-valuemax="${MAX_BASE_STAT}"
+        aria-valuenow="${stat}"
+      >
+        <span class="bar" style="width:${barWidth}%; background-color:${barColor}"></span>
+      </div>
     </div>
   `;
-}
-
-function getBarColor(value) {
-  if (value > 55) {
-    return "green";
-  } else if (value >= 30 && value <= 54) {
-    return "orange";
-  } else {
-    return "red";
-  }
 }
 
 /* Menu-Point Evolution*/
@@ -144,155 +102,81 @@ async function generateEvoltionChainNr(currentPokemon, isCurrentRequest = () => 
 
   if (!isCurrentRequest()) return;
 
-  const evolutionChainNumber = getResourceId(species.evolution_chain.url);
-  await getPokemonOfOneEvolutionClass(
-    evolutionChainNumber,
-    isCurrentRequest,
-  );
-}
-
-async function collectSpeciesID(currentPokemonChain) {
-  let speciesIDs = [];
-
-  if (
-    currentPokemonChain?.["chain"]?.["evolves_to"][0]?.["evolves_to"]?.[0]?.[
-    "species"
-    ]["url"]
-  ) {
-    let firstURL =
-      currentPokemonChain["chain"]["evolves_to"][0]["evolves_to"][0]["species"][
-        "url"
-      ].split("/");
-    speciesIDs.push(firstURL[firstURL.length - 2]);
-  } else {
-    const URLComponents =
-      currentPokemonChain["chain"]["evolves_to"][0]["species"]["url"].split(
-        "/"
-      );
-    speciesIDs.push(URLComponents[URLComponents.length - 2]);
-    const urlComponents =
-      currentPokemonChain["chain"]["species"]["url"].split("/");
-    speciesIDs.push(urlComponents[urlComponents.length - 2]);
-
-    return speciesIDs;
-  }
-
-  const URLComponents =
-    currentPokemonChain["chain"]["evolves_to"][0]["species"]["url"].split("/");
-  speciesIDs.push(URLComponents[URLComponents.length - 2]);
-  const urlComponents =
-    currentPokemonChain["chain"]["species"]["url"].split("/");
-  speciesIDs.push(urlComponents[urlComponents.length - 2]);
-
-  return speciesIDs;
-}
-
-async function getPokemonOfOneEvolutionClass(
-  currentEvolutionChainNumber,
-  isCurrentRequest = () => true,
-) {
-  const currentPokemonChain = await getEvolutionChain(
-    currentEvolutionChainNumber,
-  );
-
-  let speciesID = await collectSpeciesID(currentPokemonChain);
-  const evolutionPokemon = await getPokemonBatch(speciesID.map(Number));
+  const evolutionChainId = getResourceId(species.evolution_chain.url);
+  const evolutionChain = await getEvolutionChain(evolutionChainId);
+  const stages = parseEvolutionChain(evolutionChain);
+  const evolutionPokemon = await getPokemonBatch(collectEvolutionIds(stages));
 
   if (!isCurrentRequest()) return;
 
-  const pokemon = evolutionPokemon.map((entry) => {
-    return {
-      name: getPokemonName(entry),
-      weight: weightToSortPokemon(entry),
-      image: getPokemonImage(entry),
-      type: entry["types"]["0"]["type"]["name"],
-    };
-  });
-
-  pokemon.sort((a, b) => a.weight - b.weight);
-  generateEvolutionChainHTML(pokemon);
+  const pokemonById = new Map(evolutionPokemon.map((pokemon) => [pokemon.id, pokemon]));
+  generateEvolutionChainHTML(stages, pokemonById);
 }
 
-function generateEvolutionChainHTML(pokemonArray) {
-  let contentContainer = document.getElementById("content");
-  contentContainer.innerHTML = ``;
+function generateEvolutionChainHTML(stages, pokemonById) {
+  const contentContainer = document.getElementById('content');
 
-  generateEvolutionChainHTMLFor3Pokemon(
-    pokemonArray,
-    contentContainer
-  );
-  generateEvolutionChainHTMLFor2Pokemon(
-    pokemonArray,
-    contentContainer
-  );
-}
-
-function weightToSortPokemon(currentPokemon) {
-  let weightInKG = currentPokemon["weight"] / 10;
-
-  return weightInKG;
-}
-
-function generateEvolutionChainHTMLFor3Pokemon(
-  pokemonArray,
-  contentContainer
-) {
-  if (pokemonArray.length === 3) {
-    contentContainer.innerHTML = /*html*/ `
-      <div class="StageOfDev">
-        <img src="${pokemonArray[0]["image"]}">
-        <p>${pokemonArray[0]["name"]}</p>
-      </div>
-      
-      <img src="./img/arrow.svg" class="evolutionArrow">
-  
-      <div class="StageOfDev">
-        <img src="${pokemonArray[1]["image"]}">
-        <p>${pokemonArray[1]["name"]}</p>
-      </div>
-  
-      <img src="./img/arrow.svg" class="evolutionArrow">
-  
-      <div class="StageOfDev">
-        <img src="${pokemonArray[2]["image"]}">
-        <p>${pokemonArray[2]["name"]}</p>
-      </div>
-      `;
+  if (stages.length === 0) {
+    contentContainer.innerHTML =
+      '<p class="empty-state">Evolution data is not available.</p>';
+    return;
   }
+
+  const stageMarkup = stages
+    .map((stage, index) => {
+      const pokemonMarkup = stage
+        .map((species) => generateEvolutionPokemonHTML(species, pokemonById))
+        .join('');
+      const arrow =
+        index === 0
+          ? ''
+          : `<img src="${evolutionArrowUrl}" class="evolutionArrow" alt="" aria-hidden="true">`;
+
+      return /* html */ `
+        ${arrow}
+        <section class="evolution-stage" aria-label="Evolution stage ${index + 1}">
+          <span class="evolution-stage__label">Stage ${index + 1}</span>
+          <div class="evolution-stage__pokemon">${pokemonMarkup}</div>
+        </section>
+      `;
+    })
+    .join('');
+
+  const noEvolutionNote =
+    stages.length === 1 && stages[0].length === 1
+      ? '<p class="evolution-note">This Pokémon has no known evolutions.</p>'
+      : '';
+
+  contentContainer.innerHTML = /* html */ `
+    <div class="evolution-tree">${stageMarkup}${noEvolutionNote}</div>
+  `;
 }
 
-function generateEvolutionChainHTMLFor2Pokemon(
-  pokemonArray,
-  contentContainer
-) {
-  if (pokemonArray.length === 2) {
-    contentContainer.innerHTML = /*html*/ `
-        <div class="StageOfDev">
-          <img src="${pokemonArray[0]["image"]}">
-          <p>${pokemonArray[0]["name"]}</p>
-        </div>
-  
-        <img src="./img/arrow.svg" class="evolutionArrow">
-  
-        <div class="StageOfDev">
-          <img src="${pokemonArray[1]["image"]}">
-          <p>${pokemonArray[1]["name"]}</p>
-        </div>
-      `;
-  }
+function generateEvolutionPokemonHTML(species, pokemonById) {
+  const pokemon = pokemonById.get(species.id);
+  const name = pokemon ? getPokemonName(pokemon) : formatPokemonName(species.name);
+  const image = pokemon ? getPokemonImage(pokemon) : pokemonFallbackUrl;
+
+  return /* html */ `
+    <article class="evolution-pokemon">
+      <img src="${image}" alt="${name}">
+      <strong>${name}</strong>
+    </article>
+  `;
 }
 
 /*Menu-Point Moves*/
 function generateMovesHTML(currentPokemon) {
-  let contentContainer = document.getElementById("content");
-  contentContainer.classList.add("arrangeMoveSection");
-  contentContainer.innerHTML = ``;
-  for (let i = 0; i < currentPokemon["moves"].length; i++) {
-    const OneMove = currentPokemon["moves"][i]["move"]["name"];
-    contentContainer.innerHTML += /*html*/ `
-        <p>${OneMove}</p>
-      `;
-  }
+  const contentContainer = document.getElementById('content');
+  const moves = (currentPokemon.moves ?? [])
+    .map((entry) => entry?.move?.name)
+    .filter(Boolean)
+    .map((move) => `<span class="move-chip">${formatPokemonName(move)}</span>`)
+    .join('');
+
+  contentContainer.classList.add('arrangeMoveSection');
+  contentContainer.innerHTML =
+    moves || '<p class="empty-state">No moves are available.</p>';
 }
 
 export {

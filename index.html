@@ -1,73 +1,79 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pokédex Explorer</title>
     <script type="module" src="/src/main.js"></script>
-    <link rel="icon" type="image/x-icon" href="./img/pokeball.png">
+    <link rel="icon" type="image/x-icon" href="./img/pokeball.png" />
+  </head>
 
-</head>
-
-<body id="Body">
-    <!-------------Header----------->
+  <body>
     <header>
-        <div class="header-logo">
-            <img src="./img/pokeball.png" height="62px">
-            <h1>Pokédex</h1>
-        </div>
-        <div class="search">
-            <form action="#">
-                <div class="inputWithReset">
-                    <input type="text" placeholder="Search Pokémon..." id="Search_Pokemon" oninput="filterPokemon()" />
-                    <input type="reset" value="X" id="Reset_Btn" onclick="resetFilter()"/>
-                    <div id="filterMessage"></div>
-                </div>
-            </form>
-        </div>
+      <div class="header-logo">
+        <img src="./img/pokeball.png" width="62" height="62" alt="" aria-hidden="true" />
+        <h1>Pokédex</h1>
+      </div>
+      <div class="search">
+        <form id="pokemon-search-form" role="search">
+          <div class="inputWithReset">
+            <label class="visually-hidden" for="Search_Pokemon"
+              >Search loaded Pokémon</label
+            >
+            <input
+              type="search"
+              placeholder="Search loaded Pokémon..."
+              id="Search_Pokemon"
+              autocomplete="off"
+            />
+            <button type="reset" id="Reset_Btn" aria-label="Clear Pokémon search" hidden>
+              ×
+            </button>
+          </div>
+          <p id="filterMessage" role="status" aria-live="polite"></p>
+        </form>
+      </div>
     </header>
-    <!------------------------------------------>
-    <!------------Pokemon Small Card Section------------->
-    <section class="show-all-pokemon">
-        <div id="pokemon-card" class="pokemon-card-section">
-        </div>
-    </section>
-    <!------------------------------------------>
-    <!----------------Pokemon Big Card Section----------------->
-    <section id="big-card-background" onclick="closeBigCard()">
-        <div id="show-big-card" onclick="doNotClose(event)"></div>
-    </section>
-    <!-------------------------------------------------------------------------->
-    <div id="request-error" class="request-error" role="alert" aria-live="assertive" aria-atomic="true" hidden>
-        <p id="request-error-message"></p>
-        <button id="request-retry-button" type="button" hidden>Try again</button>
-    </div>
-    <!---------------------Loading Button------------------>
-    <div class="load-button-section">
-        <button id="load-more-button" class="load-more-button">
-            <div class="load-more">
-                <label for="amountSelect">Load more Pokemon:</label>
-                <select id="amountSelect" onchange="switchAmount()" class="cursor">
-                    <option value="0">0</option>
-                    <option value="20">20</option>
-                    <option value="40">40</option>
-                    <option value="60">60</option>
-                    <option value="80">80</option>
-                    <option value="100">100</option>
-                    <option value="150">150</option>
-                    <option value="200">200</option>
-                </select>
-            </div>
-        </button>
-    </div>
-    <div id="overlay" aria-hidden="true">
-        <div id="loader" role="status" aria-live="polite" aria-label="Loading Pokemon data" aria-atomic="true">
-            <img src="./img/pokeball-icon.svg" alt="" aria-hidden="true" />
-            <p id="loading-dots" aria-hidden="true">Loading...</p>
-        </div>
-    </div>
-    <!------------------------------------------>
-</body>
 
+    <main>
+      <section class="show-all-pokemon" aria-label="Loaded Pokémon">
+        <div id="pokemon-card" class="pokemon-card-section"></div>
+      </section>
+
+      <div class="load-button-section">
+        <button id="load-more-button" class="load-more-button" type="button">
+          Load 20 more Pokémon
+        </button>
+      </div>
+    </main>
+
+    <dialog id="pokemon-dialog" class="pokemon-dialog" aria-label="Pokémon details">
+      <div id="show-big-card"></div>
+    </dialog>
+
+    <div
+      id="request-error"
+      class="request-error"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      hidden
+    >
+      <p id="request-error-message"></p>
+      <button id="request-retry-button" type="button" hidden>Try again</button>
+    </div>
+
+    <div id="overlay" aria-hidden="true">
+      <div
+        id="loader"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading Pokemon data"
+        aria-atomic="true"
+      >
+        <img src="./img/pokeball-icon.svg" alt="" aria-hidden="true" />
+        <p id="loading-dots" aria-hidden="true">Loading...</p>
+      </div>
+    </div>
+  </body>
 </html>

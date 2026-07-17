@@ -1,14 +1,12 @@
 import {
+  getPokemonAnimation,
   getPokemonImage,
   getPokemonName,
   getPokemonNumber,
   getTypeColor,
 } from './script.js';
 import { getPokemon } from './src/api/pokemon-api.js';
-import {
-  getLoadedPokemon,
-  getLoadedPokemonAt,
-} from './src/state/pokemon-store.js';
+import { getLoadedPokemon, getLoadedPokemonAt } from './src/state/pokemon-store.js';
 import {
   beginRequest,
   clearRequestError,
@@ -25,27 +23,31 @@ import {
 
 let detailRequestVersion = 0;
 let menuRequestVersion = 0;
+let activePokemonIndex = null;
+let activeCry = null;
+let dialogInitialized = false;
+let lastFocusedElement = null;
 let releaseDetailScrollLock = null;
 
-/*Show Pokemon Infos*/
-async function renderOneCard(i) {
-  const requestVersion = ++detailRequestVersion;
-  menuRequestVersion += 1;
-  const storedPokemon = getLoadedPokemonAt(i);
+async function renderOneCard(index, triggerElement = null) {
+  const storedPokemon = getLoadedPokemonAt(index);
 
   if (!storedPokemon) return;
 
+  const requestVersion = ++detailRequestVersion;
+  const dialog = document.getElementById('pokemon-dialog');
+  const wasOpen = dialog.open;
+  menuRequestVersion += 1;
+  activePokemonIndex = index;
   clearRequestError();
-  releaseDetailScrollLock ??= acquireScrollLock();
-  document.getElementById("big-card-background").style.display = "flex";
-  document.getElementById("big-card-background").classList.add("overlayClass");
-  let lastId = fetchPokemonLast(i);
-  let nextId = fetchPokemonNext(i);
-  let oneCardDiv = document.getElementById("show-big-card");
-  oneCardDiv.classList.add("show-big-card");
-  let audio = new Audio(storedPokemon['cries']['latest']);
-  audio.volume = 0.25;
-  audio.play();
+
+  if (!wasOpen) {
+    lastFocusedElement = triggerElement ?? document.activeElement;
+    releaseDetailScrollLock = acquireScrollLock();
+    dialog.showModal();
+  }
+
+  playPokemonCry(storedPokemon);
 
   const finishRequest = beginRequest();
 
@@ -54,15 +56,16 @@ async function renderOneCard(i) {
 
     if (requestVersion !== detailRequestVersion) return;
 
-    generateCardHTML(currentPokemon, i, lastId, nextId);
-    await renderMenuPointContent(1, i, requestVersion);
+    generateCardHTML(currentPokemon, index);
+    restoreDetailFocus({ triggerElement, wasOpen });
+    await renderMenuPointContent(1, index, requestVersion);
   } catch {
     if (requestVersion === detailRequestVersion) {
       showRequestError({
         message: 'The Pokémon details could not be loaded. Please try again.',
         onRetry: () => {
           if (requestVersion !== detailRequestVersion) return Promise.resolve();
-          return renderOneCard(i);
+          return renderOneCard(index);
         },
       });
     }
@@ -71,67 +74,83 @@ async function renderOneCard(i) {
   }
 }
 
-function fetchPokemonLast(i) {
-  return i > 0 ? i - 1 : getLoadedPokemon().length - 1;
+function fetchPokemonLast(index) {
+  return index > 0 ? index - 1 : getLoadedPokemon().length - 1;
 }
 
-function fetchPokemonNext(i) {
-  return i + 1 >= getLoadedPokemon().length ? 0 : i + 1;
+function fetchPokemonNext(index) {
+  return index + 1 >= getLoadedPokemon().length ? 0 : index + 1;
 }
 
-function generateCardHTML(currentPokemon, i, lastId, nextId) {
-  let name = getPokemonName(currentPokemon);
-  let id = getPokemonNumber(currentPokemon);
-  let pokemonType0 = currentPokemon["types"]["0"]["type"]["name"];
-  let pokemonType1 = currentPokemon["types"][1] ? currentPokemon["types"][1]["type"]["name"] : null;
-  let backgroundColor = getTypeColor(pokemonType0, pokemonType1);
-  let backgroundColor0 = getTypeColor(pokemonType0);
-  let backgroundColor1 = getTypeColor(pokemonType1);
-  let image = getPokemonImage(currentPokemon);
-
-  let oneCardDiv = document.getElementById("show-big-card");
-  oneCardDiv.innerHTML = ``;
-  oneCardDiv.innerHTML = cardHTML(backgroundColor, backgroundColor0, lastId, i, nextId, backgroundColor1, image, id, name, pokemonType1, pokemonType0);
+function getPokemonCry(pokemon) {
+  return pokemon?.cries?.latest ?? pokemon?.cries?.legacy ?? null;
 }
 
-/*Close Card*/
-function closeCard(i) {
-  detailRequestVersion += 1;
-  menuRequestVersion += 1;
-  clearRequestError();
-  releaseDetailScrollLock?.();
-  releaseDetailScrollLock = null;
-  document.getElementById("big-card-background").classList.remove("overlayClass");
+function generateCardHTML(currentPokemon, index) {
+  const name = getPokemonName(currentPokemon);
+  const types = (currentPokemon.types ?? [])
+    .map((entry) => entry?.type?.name)
+    .filter(Boolean);
+  const primaryType = types[0] ?? 'normal';
+  const secondaryType = types[1] ?? null;
+  const animatedImage = getPokemonAnimation(currentPokemon);
 
-  let oneCardDiv = document.getElementById("show-big-card");
-  oneCardDiv.classList.remove("show-big-card");
-
-  document.getElementById("Pokemon_Card" + i).style.display = "none";
+  document.getElementById('show-big-card').innerHTML = cardHTML({
+    backgroundColor: getTypeColor(primaryType, secondaryType),
+    image: animatedImage ?? getPokemonImage(currentPokemon),
+    imageIsAnimated: Boolean(animatedImage),
+    index,
+    name,
+    nextIndex: fetchPokemonNext(index),
+    pokemonNumber: getPokemonNumber(currentPokemon),
+    primaryType,
+    primaryTypeColor: getTypeColor(primaryType),
+    previousIndex: fetchPokemonLast(index),
+    secondaryType,
+    secondaryTypeColor: getTypeColor(secondaryType),
+    soundAvailable: Boolean(getPokemonCry(currentPokemon)),
+  });
 }
 
-/*Changing Menu-Point*/
-function changeMenuPoint(SelectedMenuPoint) {
-  for (let k = 1; k < 5; k++) {
-    const MenuPoint = document.getElementById("Menu_Point" + [k]);
+function restoreDetailFocus({ triggerElement, wasOpen }) {
+  const action = triggerElement?.dataset?.action;
+  const focusTarget =
+    (wasOpen && action ? document.querySelector(`[data-action="${action}"]`) : null) ??
+    document.querySelector('[data-action="close"]');
 
-    MenuPoint.classList.remove("selectedMenuPoint");
+  focusTarget?.focus({ preventScroll: true });
+}
+
+function changeMenuPoint(selectedMenuPoint) {
+  const tabs = document.querySelectorAll('[data-menu-point]');
+
+  for (const tab of tabs) {
+    const isSelected = Number(tab.dataset.menuPoint) === selectedMenuPoint;
+    tab.classList.toggle('selectedMenuPoint', isSelected);
+    tab.setAttribute('aria-selected', String(isSelected));
+    tab.tabIndex = isSelected ? 0 : -1;
   }
 
+  const selectedTab = document.querySelector(`[data-menu-point="${selectedMenuPoint}"]`);
   document
-    .getElementById("Menu_Point" + SelectedMenuPoint)
-    .classList.add("selectedMenuPoint");
+    .getElementById('content')
+    ?.setAttribute('aria-labelledby', selectedTab?.id ?? '');
 }
 
-async function renderMenuPointContent(Menupoint, i, expectedDetailVersion = detailRequestVersion) {
+async function renderMenuPointContent(
+  menuPoint,
+  index = activePokemonIndex,
+  expectedDetailVersion = detailRequestVersion,
+) {
   const requestVersion = ++menuRequestVersion;
-  const storedPokemon = getLoadedPokemonAt(i);
+  const storedPokemon = getLoadedPokemonAt(index);
 
   if (!storedPokemon || expectedDetailVersion !== detailRequestVersion) return;
 
   clearRequestError();
-  document.getElementById("content").classList.remove("pokemonEvolutionClass");
-  document.getElementById("content").classList.remove("arrangeMoveSection");
-  changeMenuPoint(Menupoint);
+  const content = document.getElementById('content');
+  content.classList.remove('pokemonEvolutionClass', 'arrangeMoveSection');
+  changeMenuPoint(menuPoint);
 
   const finishRequest = beginRequest();
   const isCurrentRequest = () =>
@@ -143,21 +162,15 @@ async function renderMenuPointContent(Menupoint, i, expectedDetailVersion = deta
 
     if (!isCurrentRequest()) return;
 
-    if (Menupoint === 1) {
+    if (menuPoint === 1) {
       await generateAboutHTML(currentPokemon, isCurrentRequest);
-    }
-
-    if (Menupoint === 2) {
+    } else if (menuPoint === 2) {
       await generateBaseStatsHTML(currentPokemon, isCurrentRequest);
-    }
-
-    if (Menupoint === 3) {
+    } else if (menuPoint === 3) {
       await generateEvoltionChainNr(currentPokemon, isCurrentRequest);
       if (!isCurrentRequest()) return;
-      document.getElementById("content").classList.add("pokemonEvolutionClass");
-    }
-
-    if (Menupoint === 4) {
+      content.classList.add('pokemonEvolutionClass');
+    } else if (menuPoint === 4) {
       generateMovesHTML(currentPokemon);
     }
   } catch {
@@ -166,7 +179,7 @@ async function renderMenuPointContent(Menupoint, i, expectedDetailVersion = deta
         message: 'The Pokémon information could not be loaded. Please try again.',
         onRetry: () => {
           if (!isCurrentRequest()) return Promise.resolve();
-          return renderMenuPointContent(Menupoint, i, expectedDetailVersion);
+          return renderMenuPointContent(menuPoint, index, expectedDetailVersion);
         },
       });
     }
@@ -175,23 +188,118 @@ async function renderMenuPointContent(Menupoint, i, expectedDetailVersion = deta
   }
 }
 
-function closeBigCard() {
+function playPokemonCry(pokemon = getLoadedPokemonAt(activePokemonIndex)) {
+  const cry = getPokemonCry(pokemon);
+
+  if (!cry) return;
+
+  activeCry?.pause();
+  activeCry = new Audio(cry);
+  activeCry.volume = 0.25;
+  activeCry.addEventListener(
+    'ended',
+    () => {
+      activeCry = null;
+    },
+    { once: true },
+  );
+  activeCry.play().catch(() => {
+    activeCry = null;
+  });
+}
+
+function closePokemonDialog() {
+  const dialog = document.getElementById('pokemon-dialog');
+
+  if (!dialog.open) return;
+
   detailRequestVersion += 1;
   menuRequestVersion += 1;
   clearRequestError();
+  activeCry?.pause();
+  activeCry = null;
+  dialog.close();
+}
+
+function handleDialogClosed() {
   releaseDetailScrollLock?.();
   releaseDetailScrollLock = null;
-  document.getElementById("big-card-background").style.display = "none";
+  activePokemonIndex = null;
+  document.getElementById('show-big-card').replaceChildren();
+
+  if (lastFocusedElement?.isConnected) {
+    lastFocusedElement.focus({ preventScroll: true });
+  }
+
+  lastFocusedElement = null;
 }
 
-function doNotClose(event) {
-  event.stopPropagation();
+function handleDetailClick(event) {
+  const actionButton = event.target.closest('[data-action]');
+
+  if (actionButton) {
+    const action = actionButton.dataset.action;
+
+    if (action === 'close') closePokemonDialog();
+    if (action === 'play-cry') playPokemonCry();
+    if (action === 'previous' || action === 'next') {
+      renderOneCard(Number(actionButton.dataset.index), actionButton);
+    }
+    return;
+  }
+
+  const tab = event.target.closest('[data-menu-point]');
+
+  if (tab) {
+    renderMenuPointContent(Number(tab.dataset.menuPoint));
+  }
 }
 
-export {
-  closeBigCard,
-  closeCard,
-  doNotClose,
-  renderMenuPointContent,
-  renderOneCard,
-};
+function handleTabKeydown(event) {
+  const currentTab = event.target.closest('[data-menu-point]');
+
+  if (!currentTab || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) {
+    return;
+  }
+
+  const tabs = Array.from(document.querySelectorAll('[data-menu-point]'));
+  const currentIndex = tabs.indexOf(currentTab);
+  let nextIndex = currentIndex;
+
+  if (event.key === 'ArrowLeft')
+    nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+  if (event.key === 'ArrowRight') nextIndex = (currentIndex + 1) % tabs.length;
+  if (event.key === 'Home') nextIndex = 0;
+  if (event.key === 'End') nextIndex = tabs.length - 1;
+
+  event.preventDefault();
+  tabs[nextIndex].focus();
+  renderMenuPointContent(Number(tabs[nextIndex].dataset.menuPoint));
+}
+
+function initPokemonDialog() {
+  if (dialogInitialized) return;
+
+  const dialog = document.getElementById('pokemon-dialog');
+  const detailContainer = document.getElementById('show-big-card');
+
+  dialog.addEventListener('cancel', (event) => {
+    event.preventDefault();
+    closePokemonDialog();
+  });
+  dialog.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+
+    event.preventDefault();
+    closePokemonDialog();
+  });
+  dialog.addEventListener('close', handleDialogClosed);
+  dialog.addEventListener('click', (event) => {
+    if (event.target === dialog) closePokemonDialog();
+  });
+  detailContainer.addEventListener('click', handleDetailClick);
+  detailContainer.addEventListener('keydown', handleTabKeydown);
+  dialogInitialized = true;
+}
+
+export { initPokemonDialog, renderMenuPointContent, renderOneCard };
