@@ -92,7 +92,7 @@ async function performPageLoad(limit) {
     }
   } finally {
     finishRequest();
-    document.getElementById('load-more-button').disabled = !hasMorePokemon();
+    updateLoadMoreAvailability();
   }
 }
 
@@ -161,7 +161,6 @@ function generatePokemonCard({
       aria-label="Open details for ${name}, ${pokemonNumber}"
       ${backgroundColor}
     >
-      <span class="pokemon-card__decoration" aria-hidden="true"></span>
       <span class="name-number">
         <span class="pokemon-card__name">${name}</span>
         <span class="pokemon-card__number">${pokemonNumber}</span>
@@ -280,15 +279,42 @@ function loadMorePokemon(limit = DEFAULT_PAGE_SIZE) {
   return loadNextPokemon({ limit });
 }
 
+function getSelectedLoadAmount() {
+  const amount = Number(document.getElementById('amountSelect').value);
+
+  return Number.isInteger(amount) && amount > 0 ? amount : DEFAULT_PAGE_SIZE;
+}
+
+function updateLoadMoreButtonLabel() {
+  const loadMoreButton = document.getElementById('load-more-button');
+
+  loadMoreButton.textContent = hasMorePokemon()
+    ? `Load ${getSelectedLoadAmount()} more Pokémon`
+    : 'All Pokémon loaded';
+}
+
+function updateLoadMoreAvailability() {
+  const isAvailable = hasMorePokemon();
+
+  document.getElementById('load-more-button').disabled = !isAvailable;
+  document.getElementById('amountSelect').disabled = !isAvailable;
+  updateLoadMoreButtonLabel();
+}
+
 function initPokemonListControls() {
   const searchForm = document.getElementById('pokemon-search-form');
   const searchInput = document.getElementById('Search_Pokemon');
   const loadMoreButton = document.getElementById('load-more-button');
+  const amountSelect = document.getElementById('amountSelect');
 
   searchInput.addEventListener('input', filterPokemon);
   searchForm.addEventListener('submit', (event) => event.preventDefault());
   searchForm.addEventListener('reset', () => queueMicrotask(filterPokemon));
-  loadMoreButton.addEventListener('click', () => loadMorePokemon());
+  amountSelect.addEventListener('change', updateLoadMoreButtonLabel);
+  loadMoreButton.addEventListener('click', () =>
+    loadMorePokemon(getSelectedLoadAmount()),
+  );
+  updateLoadMoreButtonLabel();
 }
 
 function updateVisibility(cards, filter) {
@@ -307,12 +333,12 @@ function updateVisibility(cards, filter) {
 function filterPokemon() {
   const input = document.getElementById('Search_Pokemon');
   const filter = input.value.trim().toLowerCase();
-  const loadMoreButton = document.getElementById('load-more-button');
+  const loadMoreControls = document.getElementById('load-more-controls');
   const resetButton = document.getElementById('Reset_Btn');
   const cards = document.getElementById('pokemon-card').getElementsByClassName('pokedex');
   const filterMessage = document.getElementById('filterMessage');
 
-  loadMoreButton.hidden = filter !== '';
+  loadMoreControls.hidden = filter !== '';
   resetButton.hidden = filter === '';
 
   if (filter.length < 3) {

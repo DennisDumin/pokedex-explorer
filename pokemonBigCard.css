@@ -37,17 +37,6 @@
   color: white;
 }
 
-.mainInfo::after {
-  position: absolute;
-  right: -74px;
-  bottom: -90px;
-  width: 260px;
-  height: 260px;
-  border: 40px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  content: '';
-}
-
 .detail-toolbar {
   position: relative;
   z-index: 3;
@@ -138,7 +127,8 @@
 .OnePokemonCard-Image.is-animated {
   width: 140px;
   height: 140px;
-  image-rendering: pixelated;
+  filter: none;
+  image-rendering: auto;
 }
 
 .pokemon-sound-button {

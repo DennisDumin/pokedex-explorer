@@ -41,9 +41,23 @@
       </section>
 
       <div class="load-button-section">
-        <button id="load-more-button" class="load-more-button" type="button">
-          Load 20 more Pokémon
-        </button>
+        <div id="load-more-controls" class="load-more-controls">
+          <div class="load-amount-field">
+            <label for="amountSelect">Amount</label>
+            <select id="amountSelect" class="load-more-select">
+              <option value="20" selected>20</option>
+              <option value="40">40</option>
+              <option value="60">60</option>
+              <option value="80">80</option>
+              <option value="100">100</option>
+              <option value="150">150</option>
+              <option value="200">200</option>
+            </select>
+          </div>
+          <button id="load-more-button" class="load-more-button" type="button">
+            Load 20 more Pokémon
+          </button>
+        </div>
       </div>
     </main>
 
@@ -63,17 +77,17 @@
       <button id="request-retry-button" type="button" hidden>Try again</button>
     </div>
 
-    <div id="overlay" aria-hidden="true">
+    <dialog id="overlay" aria-label="Loading Pokémon data">
       <div
         id="loader"
         role="status"
         aria-live="polite"
-        aria-label="Loading Pokemon data"
+        aria-label="Loading Pokémon data"
         aria-atomic="true"
       >
         <img src="./img/pokeball-icon.svg" alt="" aria-hidden="true" />
         <p id="loading-dots" aria-hidden="true">Loading...</p>
       </div>
-    </div>
+    </dialog>
   </body>
 </html>

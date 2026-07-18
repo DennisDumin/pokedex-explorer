@@ -2,12 +2,6 @@ import { getPokemonImage, getPokemonName } from './script.js';
 import evolutionArrowUrl from './img/arrow.svg';
 import pokemonFallbackUrl from './img/pokeball-icon.svg';
 import {
-  getEvolutionChain,
-  getPokemonBatch,
-  getPokemonSpecies,
-  getResourceId,
-} from './src/api/pokemon-api.js';
-import {
   MAX_BASE_STAT,
   formatHeight,
   formatPokemonName,
@@ -15,19 +9,14 @@ import {
   getStatColor,
   normalizeBaseStat,
 } from './src/utils/formatters.js';
-import { collectEvolutionIds, parseEvolutionChain } from './src/utils/evolution.js';
 
 /*Menu-Point About */
-async function generateAboutHTML(currentPokemon, isCurrentRequest = () => true) {
+function generateAboutHTML(currentPokemon, species) {
   const contentContainer = document.getElementById('content');
   const height = formatHeight(currentPokemon.height);
   const weight = formatWeight(currentPokemon.weight);
   const abilities = getPokemonAbilities(currentPokemon);
-  const speciesId = getResourceId(currentPokemon.species.url);
-  const species = await getPokemonSpecies(speciesId);
   const eggGroups = getPokemonEggGroups(species);
-
-  if (!isCurrentRequest()) return;
 
   contentContainer.innerHTML = /*html*/ `
       <dl class="about-list">
@@ -58,14 +47,12 @@ function getPokemonEggGroups(species) {
 }
 
 /*Menu-Point Base Stats*/
-async function generateBaseStatsHTML(currentPokemon, isCurrentRequest = () => true) {
+function generateBaseStatsHTML(currentPokemon) {
   const contentContainer = document.getElementById('content');
   const statLabels = ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Speed'];
   const stats = statLabels
     .map((label, index) => getBaseStats(currentPokemon, index, label))
     .join('');
-
-  if (!isCurrentRequest()) return;
 
   contentContainer.innerHTML = /*html*/ `
     <div class="base-stats-list">${stats}</div>
@@ -96,20 +83,7 @@ function getBaseStats(currentPokemon, index, label) {
 }
 
 /* Menu-Point Evolution*/
-async function generateEvoltionChainNr(currentPokemon, isCurrentRequest = () => true) {
-  const speciesId = getResourceId(currentPokemon.species.url);
-  const species = await getPokemonSpecies(speciesId);
-
-  if (!isCurrentRequest()) return;
-
-  const evolutionChainId = getResourceId(species.evolution_chain.url);
-  const evolutionChain = await getEvolutionChain(evolutionChainId);
-  const stages = parseEvolutionChain(evolutionChain);
-  const evolutionPokemon = await getPokemonBatch(collectEvolutionIds(stages));
-
-  if (!isCurrentRequest()) return;
-
-  const pokemonById = new Map(evolutionPokemon.map((pokemon) => [pokemon.id, pokemon]));
+function generateEvolutionHTML({ pokemonById, stages }) {
   generateEvolutionChainHTML(stages, pokemonById);
 }
 
@@ -182,6 +156,6 @@ function generateMovesHTML(currentPokemon) {
 export {
   generateAboutHTML,
   generateBaseStatsHTML,
-  generateEvoltionChainNr,
+  generateEvolutionHTML,
   generateMovesHTML,
 };

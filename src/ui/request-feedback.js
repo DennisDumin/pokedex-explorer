@@ -42,15 +42,13 @@ function stopLoadingAnimation() {
 
 function showLoader() {
   releaseLoaderScrollLock = acquireScrollLock();
-  overlay.classList.add('is-visible');
-  overlay.setAttribute('aria-hidden', 'false');
+  if (!overlay.open) overlay.showModal();
   startLoadingAnimation();
 }
 
 function hideLoader() {
   stopLoadingAnimation();
-  overlay.classList.remove('is-visible');
-  overlay.setAttribute('aria-hidden', 'true');
+  if (overlay.open) overlay.close();
   releaseLoaderScrollLock?.();
   releaseLoaderScrollLock = null;
 }
@@ -110,6 +108,10 @@ function showRequestError({ message = DEFAULT_ERROR_MESSAGE, onRetry = null } = 
   retryButton.hidden = retryHandler === null;
   errorPanel.hidden = false;
 }
+
+overlay.addEventListener('cancel', (event) => {
+  event.preventDefault();
+});
 
 retryButton.addEventListener('click', async () => {
   const currentRetryHandler = retryHandler;

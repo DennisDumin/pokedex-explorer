@@ -15,6 +15,18 @@
   .show-all-pokemon {
     padding-inline: 12px;
   }
+
+  .load-button-section {
+    padding: 16px 12px 24px;
+  }
+
+  .load-more-controls {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+
+  .load-more-button {
+    width: 100%;
+  }
 }
 
 @media (max-width: 360px) {

@@ -14,7 +14,7 @@ collection, and inspect details, stats, moves, and complete evolution chains.
 
 ## Features
 
-- Loads Pokémon in pages of 20 using `limit` and `offset`
+- Loads selectable batches of 20 to 200 Pokémon using `limit` and `offset`
 - Searches within the currently loaded Pokémon
 - Responsive card grid and native `<dialog>` detail view
 - Official artwork with animated sprites on hover

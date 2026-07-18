@@ -5,7 +5,10 @@ const MEDIA_LOAD_TIMEOUT = 10000;
 function getPokemonMediaUrls(pokemon) {
   const artwork = pokemon.sprites?.other?.['official-artwork']?.front_default;
   const animatedSprite =
-    pokemon.sprites?.other?.showdown?.front_default ?? pokemon.sprites?.front_default;
+    pokemon.sprites?.other?.showdown?.front_default ??
+    pokemon.sprites?.versions?.['generation-v']?.['black-white']?.animated
+      ?.front_default ??
+    pokemon.sprites?.front_default;
 
   return [artwork, animatedSprite].filter(Boolean);
 }

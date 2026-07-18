@@ -5,7 +5,7 @@ import {
   getPokemonNumber,
   getTypeColor,
 } from './script.js';
-import { getPokemon } from './src/api/pokemon-api.js';
+import { getPokemonDetails } from './src/api/pokemon-details.js';
 import { getLoadedPokemon, getLoadedPokemonAt } from './src/state/pokemon-store.js';
 import {
   beginRequest,
@@ -13,17 +13,21 @@ import {
   showRequestError,
 } from './src/ui/request-feedback.js';
 import { acquireScrollLock } from './src/ui/scroll-lock.js';
+import { preloadPokemonMedia } from './src/utils/media.js';
 import { cardHTML } from './pokemonBigCardHTML.js';
 import {
   generateAboutHTML,
   generateBaseStatsHTML,
-  generateEvoltionChainNr,
+  generateEvolutionHTML,
   generateMovesHTML,
 } from './pokemonCardMenu.js';
+
+const POKEMON_CRY_VOLUME = 0.12;
 
 let detailRequestVersion = 0;
 let menuRequestVersion = 0;
 let activePokemonIndex = null;
+let activePokemonDetails = null;
 let activeCry = null;
 let dialogInitialized = false;
 let lastFocusedElement = null;
@@ -39,28 +43,38 @@ async function renderOneCard(index, triggerElement = null) {
   const wasOpen = dialog.open;
   menuRequestVersion += 1;
   activePokemonIndex = index;
+  activePokemonDetails = null;
   clearRequestError();
+  stopPokemonCry();
 
   if (!wasOpen) {
     lastFocusedElement = triggerElement ?? document.activeElement;
-    releaseDetailScrollLock = acquireScrollLock();
-    dialog.showModal();
   }
-
-  playPokemonCry(storedPokemon);
 
   const finishRequest = beginRequest();
 
   try {
-    const currentPokemon = await getPokemon(storedPokemon.id);
+    const details = await getPokemonDetails(storedPokemon.id);
+    await preloadPokemonMedia([details.pokemon, ...details.evolution.pokemon]);
 
     if (requestVersion !== detailRequestVersion) return;
 
-    generateCardHTML(currentPokemon, index);
+    activePokemonDetails = details;
+    generateCardHTML(details.pokemon, index);
+    renderMenuPointContent(1, index, requestVersion);
+    finishRequest();
+
+    if (!wasOpen) {
+      releaseDetailScrollLock = acquireScrollLock();
+      dialog.showModal();
+    }
+
     restoreDetailFocus({ triggerElement, wasOpen });
-    await renderMenuPointContent(1, index, requestVersion);
+    playPokemonCry(details.pokemon);
   } catch {
     if (requestVersion === detailRequestVersion) {
+      if (dialog.open) dialog.close();
+
       showRequestError({
         message: 'The Pokémon details could not be loaded. Please try again.',
         onRetry: () => {
@@ -137,41 +151,42 @@ function changeMenuPoint(selectedMenuPoint) {
     ?.setAttribute('aria-labelledby', selectedTab?.id ?? '');
 }
 
-async function renderMenuPointContent(
+function renderMenuPointContent(
   menuPoint,
   index = activePokemonIndex,
   expectedDetailVersion = detailRequestVersion,
 ) {
   const requestVersion = ++menuRequestVersion;
-  const storedPokemon = getLoadedPokemonAt(index);
+  const details = activePokemonDetails;
 
-  if (!storedPokemon || expectedDetailVersion !== detailRequestVersion) return;
+  if (
+    !details ||
+    index !== activePokemonIndex ||
+    expectedDetailVersion !== detailRequestVersion
+  ) {
+    return;
+  }
 
   clearRequestError();
   const content = document.getElementById('content');
   content.classList.remove('pokemonEvolutionClass', 'arrangeMoveSection');
   changeMenuPoint(menuPoint);
 
-  const finishRequest = beginRequest();
   const isCurrentRequest = () =>
     requestVersion === menuRequestVersion &&
     expectedDetailVersion === detailRequestVersion;
 
   try {
-    const currentPokemon = await getPokemon(storedPokemon.id);
-
-    if (!isCurrentRequest()) return;
-
     if (menuPoint === 1) {
-      await generateAboutHTML(currentPokemon, isCurrentRequest);
+      generateAboutHTML(details.pokemon, details.species);
     } else if (menuPoint === 2) {
-      await generateBaseStatsHTML(currentPokemon, isCurrentRequest);
+      generateBaseStatsHTML(details.pokemon);
     } else if (menuPoint === 3) {
-      await generateEvoltionChainNr(currentPokemon, isCurrentRequest);
+      generateEvolutionHTML(details.evolution);
       if (!isCurrentRequest()) return;
       content.classList.add('pokemonEvolutionClass');
     } else if (menuPoint === 4) {
-      generateMovesHTML(currentPokemon);
+      generateMovesHTML(details.pokemon);
     }
   } catch {
     if (isCurrentRequest()) {
@@ -183,28 +198,32 @@ async function renderMenuPointContent(
         },
       });
     }
-  } finally {
-    finishRequest();
   }
+}
+
+function stopPokemonCry() {
+  activeCry?.pause();
+  activeCry = null;
 }
 
 function playPokemonCry(pokemon = getLoadedPokemonAt(activePokemonIndex)) {
   const cry = getPokemonCry(pokemon);
 
+  stopPokemonCry();
   if (!cry) return;
 
-  activeCry?.pause();
-  activeCry = new Audio(cry);
-  activeCry.volume = 0.25;
-  activeCry.addEventListener(
+  const audio = new Audio(cry);
+  activeCry = audio;
+  audio.volume = POKEMON_CRY_VOLUME;
+  audio.addEventListener(
     'ended',
     () => {
-      activeCry = null;
+      if (activeCry === audio) activeCry = null;
     },
     { once: true },
   );
-  activeCry.play().catch(() => {
-    activeCry = null;
+  audio.play().catch(() => {
+    if (activeCry === audio) activeCry = null;
   });
 }
 
@@ -216,8 +235,7 @@ function closePokemonDialog() {
   detailRequestVersion += 1;
   menuRequestVersion += 1;
   clearRequestError();
-  activeCry?.pause();
-  activeCry = null;
+  stopPokemonCry();
   dialog.close();
 }
 
@@ -225,6 +243,8 @@ function handleDialogClosed() {
   releaseDetailScrollLock?.();
   releaseDetailScrollLock = null;
   activePokemonIndex = null;
+  activePokemonDetails = null;
+  stopPokemonCry();
   document.getElementById('show-big-card').replaceChildren();
 
   if (lastFocusedElement?.isConnected) {
