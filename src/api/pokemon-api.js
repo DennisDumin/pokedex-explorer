@@ -10,8 +10,7 @@ const speciesCache = createRequestCache();
 const evolutionChainCache = createRequestCache();
 
 function normalizeId(id, resourceName) {
-  const normalizedId =
-    typeof id === 'string' && /^\d+$/.test(id) ? Number(id) : id;
+  const normalizedId = typeof id === 'string' && /^\d+$/.test(id) ? Number(id) : id;
 
   if (!Number.isSafeInteger(normalizedId) || normalizedId < 1) {
     throw new TypeError(`${resourceName} ID must be a positive integer.`);
@@ -73,10 +72,7 @@ function getEvolutionChain(id) {
   );
 }
 
-function getPokemonBatch(
-  ids,
-  { concurrency = DEFAULT_CONCURRENCY } = {},
-) {
+function getPokemonBatch(ids, { concurrency = DEFAULT_CONCURRENCY } = {}) {
   return mapWithConcurrency(ids, (id) => getPokemon(id), { concurrency });
 }
 

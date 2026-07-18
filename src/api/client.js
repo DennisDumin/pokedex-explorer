@@ -29,14 +29,11 @@ async function fetchJson(url, { signal } = {}) {
   }
 
   if (!response.ok) {
-    throw new ApiError(
-      `The PokéAPI request failed with status ${response.status}.`,
-      {
-        status: response.status,
-        statusText: response.statusText,
-        url: requestUrl,
-      },
-    );
+    throw new ApiError(`The PokéAPI request failed with status ${response.status}.`, {
+      status: response.status,
+      statusText: response.statusText,
+      url: requestUrl,
+    });
   }
 
   try {

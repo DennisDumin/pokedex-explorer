@@ -1,8 +1,4 @@
-async function mapWithConcurrency(
-  values,
-  mapper,
-  { concurrency = 6 } = {},
-) {
+async function mapWithConcurrency(values, mapper, { concurrency = 6 } = {}) {
   if (typeof mapper !== 'function') {
     throw new TypeError('The mapper must be a function.');
   }

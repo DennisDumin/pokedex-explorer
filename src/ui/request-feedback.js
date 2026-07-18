@@ -57,9 +57,7 @@ function hideLoader() {
 
 function lockLoadMoreButton() {
   if (loadMoreLockCount === 0) {
-    previousLoadMoreDisabledStates = loadMoreControls.map(
-      (control) => control.disabled,
-    );
+    previousLoadMoreDisabledStates = loadMoreControls.map((control) => control.disabled);
   }
 
   loadMoreLockCount += 1;
@@ -104,10 +102,7 @@ function clearRequestError() {
   errorPanel.hidden = true;
 }
 
-function showRequestError({
-  message = DEFAULT_ERROR_MESSAGE,
-  onRetry = null,
-} = {}) {
+function showRequestError({ message = DEFAULT_ERROR_MESSAGE, onRetry = null } = {}) {
   retryHandler = typeof onRetry === 'function' ? onRetry : null;
   retryMessage = message;
   errorMessage.textContent = message;
