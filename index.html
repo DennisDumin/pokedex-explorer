@@ -3,12 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Explore Pokémon, evolutions, matchups, trading cards, favorites, and direct stat comparisons."
+    />
     <title>Pokédex Explorer</title>
     <script type="module" src="/src/main.js"></script>
-    <link rel="icon" type="image/x-icon" href="./img/pokeball.png" />
+    <link rel="icon" type="image/png" href="./img/pokeball.png" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#050b17" />
   </head>
 
   <body>
+    <a class="skip-link" href="#pokemon-content" data-i18n="skip.cards"
+      >Skip to Pokémon cards</a
+    >
     <header>
       <div class="header-logo">
         <img src="./img/pokeball.png" width="62" height="62" alt="" aria-hidden="true" />
@@ -16,34 +25,164 @@
       </div>
       <div class="search">
         <form id="pokemon-search-form" role="search">
-          <div class="inputWithReset">
-            <label class="visually-hidden" for="Search_Pokemon"
-              >Search loaded Pokémon</label
+          <div class="search-bar">
+            <div class="inputWithReset">
+              <label class="visually-hidden" for="Search_Pokemon" data-i18n="search.label"
+                >Search the complete Pokédex by name or number</label
+              >
+              <input
+                type="search"
+                placeholder="Search by name or number..."
+                data-i18n-placeholder="search.placeholder"
+                id="Search_Pokemon"
+                autocomplete="off"
+              />
+              <button
+                type="button"
+                id="Reset_Btn"
+                aria-label="Clear Pokémon search"
+                data-i18n-aria-label="search.clear"
+                hidden
+              >
+                ×
+              </button>
+            </div>
+            <button
+              id="search-submit-button"
+              class="search-submit-button"
+              type="submit"
+              data-i18n="search.submit"
             >
-            <input
-              type="search"
-              placeholder="Search loaded Pokémon..."
-              id="Search_Pokemon"
-              autocomplete="off"
-            />
-            <button type="reset" id="Reset_Btn" aria-label="Clear Pokémon search" hidden>
-              ×
+              Search
+            </button>
+          </div>
+
+          <div
+            class="discovery-controls"
+            aria-label="Pokédex filters"
+            data-i18n-aria-label="search.filters"
+          >
+            <label>
+              <span data-i18n="search.type">Type</span>
+              <select id="type-filter">
+                <option value="all" data-i18n="common.all">All</option>
+                <option value="normal" data-i18n="type.normal">Normal</option>
+                <option value="fire" data-i18n="type.fire">Fire</option>
+                <option value="water" data-i18n="type.water">Water</option>
+                <option value="electric" data-i18n="type.electric">Electric</option>
+                <option value="grass" data-i18n="type.grass">Grass</option>
+                <option value="ice" data-i18n="type.ice">Ice</option>
+                <option value="fighting" data-i18n="type.fighting">Fighting</option>
+                <option value="poison" data-i18n="type.poison">Poison</option>
+                <option value="ground" data-i18n="type.ground">Ground</option>
+                <option value="flying" data-i18n="type.flying">Flying</option>
+                <option value="psychic" data-i18n="type.psychic">Psychic</option>
+                <option value="bug" data-i18n="type.bug">Bug</option>
+                <option value="rock" data-i18n="type.rock">Rock</option>
+                <option value="ghost" data-i18n="type.ghost">Ghost</option>
+                <option value="dragon" data-i18n="type.dragon">Dragon</option>
+                <option value="dark" data-i18n="type.dark">Dark</option>
+                <option value="steel" data-i18n="type.steel">Steel</option>
+                <option value="fairy" data-i18n="type.fairy">Fairy</option>
+              </select>
+            </label>
+
+            <label>
+              <span data-i18n="search.generation">Generation</span>
+              <select id="generation-filter">
+                <option value="all" data-i18n="common.all">All</option>
+                <option value="1" data-i18n="generation.1">Generation I</option>
+                <option value="2" data-i18n="generation.2">Generation II</option>
+                <option value="3" data-i18n="generation.3">Generation III</option>
+                <option value="4" data-i18n="generation.4">Generation IV</option>
+                <option value="5" data-i18n="generation.5">Generation V</option>
+                <option value="6" data-i18n="generation.6">Generation VI</option>
+                <option value="7" data-i18n="generation.7">Generation VII</option>
+                <option value="8" data-i18n="generation.8">Generation VIII</option>
+                <option value="9" data-i18n="generation.9">Generation IX</option>
+              </select>
+            </label>
+
+            <label>
+              <span data-i18n="search.sortBy">Sort by</span>
+              <select id="sort-filter">
+                <option value="id" data-i18n="search.number">Number</option>
+                <option value="name" data-i18n="search.name">Name</option>
+              </select>
+            </label>
+
+            <button
+              id="sort-order-button"
+              class="sort-order-button"
+              type="button"
+              aria-label="Sort ascending"
+              data-i18n-aria-label="search.sortAscending"
+              aria-pressed="false"
+            >
+              <span aria-hidden="true">↑</span>
+              <span class="sort-order-label" data-i18n="search.ascending">Ascending</span>
             </button>
           </div>
           <p id="filterMessage" role="status" aria-live="polite"></p>
         </form>
+
+        <div class="app-actions">
+          <label class="language-switcher" for="language-select">
+            <span data-i18n="language.label">Language</span>
+            <select id="language-select">
+              <option value="en" data-i18n="language.english">English</option>
+              <option value="de" data-i18n="language.german">Deutsch</option>
+            </select>
+          </label>
+          <button id="random-pokemon-button" class="app-action-button" type="button">
+            <span aria-hidden="true">↻</span>
+            <span data-i18n="actions.surprise">Surprise me</span>
+          </button>
+          <button id="daily-pokemon-button" class="app-action-button" type="button">
+            <span aria-hidden="true">☀</span>
+            <span data-i18n="actions.daily">Pokémon of the day</span>
+          </button>
+          <button id="install-app-button" class="app-action-button" type="button" hidden>
+            <span aria-hidden="true">↓</span>
+            <span data-i18n="actions.install">Install app</span>
+          </button>
+          <button id="open-collection-button" class="app-action-button" type="button">
+            <span aria-hidden="true">♥</span>
+            <span data-i18n="actions.saved">Saved Pokémon</span>
+            <span id="collection-count" class="app-action-count">0</span>
+          </button>
+        </div>
+
+        <div id="comparison-selection-bar" class="comparison-selection-bar" hidden>
+          <span class="comparison-selection-icon" aria-hidden="true">⇄</span>
+          <p
+            id="comparison-selection-message"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            One Pokémon selected. Open another Pokémon and choose Compare.
+          </p>
+          <button id="clear-comparison-button" type="button" data-i18n="comparison.clear">
+            Clear
+          </button>
+        </div>
       </div>
     </header>
 
-    <main>
-      <section class="show-all-pokemon" aria-label="Loaded Pokémon">
+    <main id="pokemon-content" tabindex="-1">
+      <section
+        class="show-all-pokemon"
+        aria-label="Loaded Pokémon"
+        data-i18n-aria-label="list.loadedRegion"
+      >
         <div id="pokemon-card" class="pokemon-card-section"></div>
       </section>
 
       <div class="load-button-section">
         <div id="load-more-controls" class="load-more-controls">
           <div class="load-amount-field">
-            <label for="amountSelect">Amount</label>
+            <label for="amountSelect" data-i18n="list.amount">Amount</label>
             <select id="amountSelect" class="load-more-select">
               <option value="20" selected>20</option>
               <option value="40">40</option>
@@ -61,9 +200,189 @@
       </div>
     </main>
 
-    <dialog id="pokemon-dialog" class="pokemon-dialog" aria-label="Pokémon details">
+    <dialog
+      id="pokemon-dialog"
+      class="pokemon-dialog"
+      aria-labelledby="pokemon-dialog-title"
+    >
+      <div
+        class="dialog-connectivity-status"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        data-connectivity-dialog-status
+        hidden
+      >
+        <span
+          class="connectivity-status__icon"
+          data-connectivity-icon
+          aria-hidden="true"
+        ></span>
+        <span data-connectivity-message></span>
+      </div>
       <div id="show-big-card"></div>
     </dialog>
+
+    <dialog
+      id="collection-dialog"
+      class="collection-dialog"
+      aria-labelledby="collection-dialog-title"
+    >
+      <div class="collection-shell">
+        <header class="secondary-dialog-header">
+          <div>
+            <span class="dialog-eyebrow" data-i18n="collection.eyebrow"
+              >Stored in this browser</span
+            >
+            <h2 id="collection-dialog-title" data-i18n="collection.title">
+              Saved Pokémon
+            </h2>
+            <p class="secondary-dialog-description" data-i18n="collection.description">
+              Your favorite and recently viewed Pokémon.
+            </p>
+          </div>
+          <button
+            class="secondary-dialog-close"
+            type="button"
+            data-collection-action="close"
+            aria-label="Close saved Pokémon"
+            data-i18n-aria-label="collection.close"
+          >
+            ×
+          </button>
+        </header>
+
+        <div
+          class="dialog-connectivity-status"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-connectivity-dialog-status
+          hidden
+        >
+          <span
+            class="connectivity-status__icon"
+            data-connectivity-icon
+            aria-hidden="true"
+          ></span>
+          <span data-connectivity-message></span>
+        </div>
+
+        <div
+          class="collection-tabs"
+          role="tablist"
+          aria-label="Collection sections"
+          data-i18n-aria-label="collection.sections"
+        >
+          <button
+            id="collection-tab-favorites"
+            class="collection-tab is-active"
+            type="button"
+            role="tab"
+            data-collection-tab="favorites"
+            aria-controls="collection-content"
+            aria-selected="true"
+          >
+            <span class="collection-tab-label" data-i18n="collection.favorites"
+              >Favorites</span
+            >
+            <span data-collection-count="favorites">0</span>
+          </button>
+          <button
+            id="collection-tab-recent"
+            class="collection-tab"
+            type="button"
+            role="tab"
+            data-collection-tab="recent"
+            aria-controls="collection-content"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            <span class="collection-tab-label" data-i18n="collection.recent"
+              >Recently viewed</span
+            >
+            <span data-collection-count="recent">0</span>
+          </button>
+        </div>
+
+        <p
+          id="collection-section-description"
+          class="collection-section-description"
+          data-i18n="collection.favoriteDescription"
+        >
+          Pokémon you marked as favorites in their detail view.
+        </p>
+
+        <div
+          id="collection-content"
+          class="collection-content"
+          role="tabpanel"
+          aria-live="polite"
+          aria-labelledby="collection-tab-favorites"
+          aria-describedby="collection-section-description"
+        ></div>
+      </div>
+    </dialog>
+
+    <dialog
+      id="comparison-dialog"
+      class="comparison-dialog"
+      aria-labelledby="comparison-dialog-title"
+    >
+      <div class="comparison-shell">
+        <header class="secondary-dialog-header">
+          <div>
+            <span class="dialog-eyebrow" data-i18n="comparison.eyebrow"
+              >Side by side</span
+            >
+            <h2 id="comparison-dialog-title" data-i18n="comparison.title">
+              Pokémon comparison
+            </h2>
+          </div>
+          <button
+            class="secondary-dialog-close"
+            type="button"
+            data-comparison-action="close"
+            aria-label="Close comparison"
+            data-i18n-aria-label="comparison.close"
+          >
+            ×
+          </button>
+        </header>
+        <div
+          class="dialog-connectivity-status"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-connectivity-dialog-status
+          hidden
+        >
+          <span
+            class="connectivity-status__icon"
+            data-connectivity-icon
+            aria-hidden="true"
+          ></span>
+          <span data-connectivity-message></span>
+        </div>
+        <div id="comparison-content" class="comparison-content"></div>
+      </div>
+    </dialog>
+
+    <div
+      id="connectivity-status"
+      class="connectivity-status"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      hidden
+    >
+      <span
+        class="connectivity-status__icon"
+        data-connectivity-icon
+        aria-hidden="true"
+      ></span>
+      <span data-connectivity-message></span>
+    </div>
 
     <div
       id="request-error"
@@ -74,15 +393,22 @@
       hidden
     >
       <p id="request-error-message"></p>
-      <button id="request-retry-button" type="button" hidden>Try again</button>
+      <button id="request-retry-button" type="button" data-i18n="common.retry" hidden>
+        Try again
+      </button>
     </div>
 
-    <dialog id="overlay" aria-label="Loading Pokémon data">
+    <dialog
+      id="overlay"
+      aria-label="Loading Pokémon data"
+      data-i18n-aria-label="loader.data"
+    >
       <div
         id="loader"
         role="status"
         aria-live="polite"
         aria-label="Loading Pokémon data"
+        data-i18n-aria-label="loader.data"
         aria-atomic="true"
       >
         <img src="./img/pokeball-icon.svg" alt="" aria-hidden="true" />

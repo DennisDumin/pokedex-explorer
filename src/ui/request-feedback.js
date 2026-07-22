@@ -1,7 +1,5 @@
 import { acquireScrollLock } from './scroll-lock.js';
-
-const DEFAULT_ERROR_MESSAGE =
-  "We couldn't load the Pokémon data. Please check your connection and try again.";
+import { onLanguageChange, t } from '../i18n/index.js';
 
 const overlay = document.getElementById('overlay');
 const loadingDots = document.getElementById('loading-dots');
@@ -18,17 +16,25 @@ let loadMoreLockCount = 0;
 let loadingIntervalId = null;
 let previousLoadMoreDisabledStates = [];
 let retryHandler = null;
-let retryMessage = DEFAULT_ERROR_MESSAGE;
+let retryMessage = '';
+let retryMessageKey = 'errors.default';
+let retryMessageParameters = {};
 let releaseLoaderScrollLock = null;
+let visibleLoadingDotCount = 3;
+
+function renderLoadingText(dotCount = visibleLoadingDotCount) {
+  visibleLoadingDotCount = dotCount;
+  loadingDots.textContent = `${t('common.loading')}${'.'.repeat(dotCount)}`;
+}
 
 function startLoadingAnimation() {
   if (loadingIntervalId !== null) return;
 
   let dotCount = 1;
-  loadingDots.textContent = 'Loading.';
+  renderLoadingText(dotCount);
   loadingIntervalId = window.setInterval(() => {
     dotCount = (dotCount % 3) + 1;
-    loadingDots.textContent = `Loading${'.'.repeat(dotCount)}`;
+    renderLoadingText(dotCount);
   }, 400);
 }
 
@@ -37,7 +43,7 @@ function stopLoadingAnimation() {
 
   window.clearInterval(loadingIntervalId);
   loadingIntervalId = null;
-  loadingDots.textContent = 'Loading...';
+  renderLoadingText(3);
 }
 
 function showLoader() {
@@ -100,10 +106,23 @@ function clearRequestError() {
   errorPanel.hidden = true;
 }
 
-function showRequestError({ message = DEFAULT_ERROR_MESSAGE, onRetry = null } = {}) {
+function showRequestError({
+  message,
+  messageKey,
+  messageParameters = {},
+  onRetry = null,
+} = {}) {
+  const resolvedMessageKey =
+    messageKey ?? (message === undefined ? 'errors.default' : null);
+  const resolvedMessage = resolvedMessageKey
+    ? t(resolvedMessageKey, messageParameters)
+    : message;
+
   retryHandler = typeof onRetry === 'function' ? onRetry : null;
-  retryMessage = message;
-  errorMessage.textContent = message;
+  retryMessageKey = resolvedMessageKey;
+  retryMessageParameters = messageParameters;
+  retryMessage = resolvedMessage;
+  errorMessage.textContent = resolvedMessage;
   retryButton.disabled = false;
   retryButton.hidden = retryHandler === null;
   errorPanel.hidden = false;
@@ -116,6 +135,8 @@ overlay.addEventListener('cancel', (event) => {
 retryButton.addEventListener('click', async () => {
   const currentRetryHandler = retryHandler;
   const currentRetryMessage = retryMessage;
+  const currentRetryMessageKey = retryMessageKey;
+  const currentRetryMessageParameters = retryMessageParameters;
   if (!currentRetryHandler || retryButton.disabled) return;
 
   clearRequestError();
@@ -124,9 +145,19 @@ retryButton.addEventListener('click', async () => {
     await currentRetryHandler();
   } catch {
     showRequestError({
-      message: currentRetryMessage,
+      message: currentRetryMessageKey ? undefined : currentRetryMessage,
+      messageKey: currentRetryMessageKey,
+      messageParameters: currentRetryMessageParameters,
       onRetry: currentRetryHandler,
     });
+  }
+});
+
+onLanguageChange(() => {
+  renderLoadingText();
+  if (!errorPanel.hidden && retryMessageKey) {
+    retryMessage = t(retryMessageKey, retryMessageParameters);
+    errorMessage.textContent = retryMessage;
   }
 });
 

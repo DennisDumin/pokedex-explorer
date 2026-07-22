@@ -12,6 +12,19 @@
     margin-bottom: 18px;
   }
 
+  .search form {
+    width: calc(100vw - 24px);
+    padding: 10px;
+  }
+
+  .discovery-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sort-order-button {
+    padding-inline: 12px;
+  }
+
   .show-all-pokemon {
     padding-inline: 12px;
   }
@@ -30,6 +43,20 @@
 }
 
 @media (max-width: 360px) {
+  .search-bar {
+    grid-template-columns: minmax(0, 1fr) 76px;
+  }
+
+  .search-submit-button {
+    padding-inline: 10px;
+    font-size: 0.85rem;
+  }
+
+  .discovery-controls select,
+  .sort-order-button {
+    font-size: 0.8rem;
+  }
+
   .pokedex {
     min-height: 260px;
     padding: 16px;
