@@ -4,6 +4,19 @@ const pokemonOrder = [];
 let nextOffset = 0;
 let totalPokemon = null;
 
+function cachePokemon(pokemon) {
+  const cachedPokemon = [];
+
+  for (const entry of pokemon ?? []) {
+    if (!Number.isSafeInteger(entry?.id) || entry.id < 1) continue;
+
+    pokemonById.set(entry.id, entry);
+    cachedPokemon.push(entry);
+  }
+
+  return cachedPokemon;
+}
+
 function addPokemonPage({ pokemon, offset, nextOffset: pageNextOffset, total }) {
   if (offset !== nextOffset) {
     return [];
@@ -11,12 +24,11 @@ function addPokemonPage({ pokemon, offset, nextOffset: pageNextOffset, total }) 
 
   const addedPokemon = [];
 
-  for (const entry of pokemon) {
-    if (pokemonById.has(entry.id)) {
+  for (const entry of cachePokemon(pokemon)) {
+    if (pokemonOrder.includes(entry.id)) {
       continue;
     }
 
-    pokemonById.set(entry.id, entry);
     pokemonOrder.push(entry.id);
     addedPokemon.push(entry);
   }
@@ -36,6 +48,12 @@ function getLoadedPokemonAt(index) {
   return id === undefined ? null : pokemonById.get(id);
 }
 
+function getPokemonById(id) {
+  const pokemonId = Number(id);
+
+  return Number.isSafeInteger(pokemonId) ? (pokemonById.get(pokemonId) ?? null) : null;
+}
+
 function getNextPokemonOffset() {
   return nextOffset;
 }
@@ -46,8 +64,10 @@ function hasMorePokemon() {
 
 export {
   addPokemonPage,
+  cachePokemon,
   getLoadedPokemon,
   getLoadedPokemonAt,
   getNextPokemonOffset,
+  getPokemonById,
   hasMorePokemon,
 };
