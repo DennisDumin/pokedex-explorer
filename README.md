@@ -1,62 +1,90 @@
 # Pokédex Explorer
 
-A responsive Pokédex built with Vanilla JavaScript and the
-[PokéAPI](https://pokeapi.co/). Browse Pokémon, search the currently loaded
-collection, and inspect details, stats, moves, and complete evolution chains.
+A portfolio-focused Pokédex built with Vanilla JavaScript, ES modules, Vite, and
+two public Pokémon APIs. It combines fast catalog discovery with accessible
+details, collection tools, shareable URLs, and installable PWA support without a
+frontend framework.
 
-> **Live demo:** Add deployment URL here.
+> **Live demo:** Add the deployed project URL here.
 
 ## Preview
 
-![Pokédex overview with a responsive card grid](docs/screenshots/pokedex-overview.png)
+![Responsive Pokédex overview](docs/screenshots/pokedex-overview.png)
 
-![Pokémon detail dialog with the About tab](docs/screenshots/pokedex-details.png)
+![Pokémon detail dialog](docs/screenshots/pokedex-details.png)
 
-## Features
+## Highlights
 
-- Loads selectable batches of 20 to 200 Pokémon using `limit` and `offset`
-- Searches within the currently loaded Pokémon
-- Responsive card grid and native `<dialog>` detail view
-- Official artwork with animated sprites on hover
-- Detail tabs for general information, base stats, evolutions, and moves
-- Complete branching evolution chains, including Eevee- and Wurmple-style chains
-- Plays an available Pokémon cry when details open and offers a replay button
-- Caches Pokémon, species, and evolution-chain requests
-- Controls parallel API and media loading while preventing duplicate requests
-- Provides loading states, clear error feedback, and a retry action
-- Supports keyboard navigation, focus management, accessible tabs, and reduced motion
+- Searches the complete Pokédex by name or real Pokédex number
+- Filters by type and generation, with name/number sorting in both directions
+- Keeps discovery state in the URL and loads selectable batches of 20–200 Pokémon
+- Shows responsive cards with official artwork and animated hover sprites
+- Opens a native, keyboard-accessible `<dialog>` on 320 px through desktop layouts
+- Preloads species and evolution data before displaying the detail view
+- Provides About, Base stats, Matchups, Evolution, and TCG cards tabs
+- Parses complete branching evolutions and explains known evolution requirements
+- Switches between normal and Shiny media without another loading screen
+- Supports alternative varieties/forms when PokéAPI provides them
+- Plays available cries at reduced volume on open and provides a replay button
+- Stores favorites and recently viewed Pokémon locally
+- Directly compares any two Pokémon across their base stats
+- Switches the complete interface between English and German and remembers the choice
+- Opens a random Pokémon or a deterministic Pokémon of the day
+- Creates shareable detail links such as `?pokemon=25&tab=cards&shiny=1`
+- Can be installed as a PWA and caches the app shell, API responses, and viewed media
+- Shows an accessible connection status when the app goes offline or comes back online
+- Handles failed requests with useful messages and retry actions
+
+## Accessibility and Interaction
+
+- Semantic buttons, forms, labels, status messages, tabs, and native dialogs
+- Complete keyboard operation, arrow-key tab navigation, and Escape-to-close
+- Focus restoration after dialogs close and visible `:focus-visible` styles
+- Meaningful alternative text and ARIA labels
+- Localized status and ARIA text with an automatically updated HTML `lang` attribute
+- Reduced animations when `prefers-reduced-motion` is enabled
+- Responsive layouts checked for 320 px, 375 px, 412 px, and desktop widths
 
 ## Technologies
 
 - HTML5 and CSS3
 - Vanilla JavaScript with ES modules
-- Vite
-- PokéAPI
-- Vitest
-- ESLint and Prettier
+- [Vite](https://vite.dev/) for development and production builds
+- [PokéAPI](https://pokeapi.co/) for Pokémon, species, types, and evolutions
+- [Pokémon TCG API](https://pokemontcg.io/) for optional trading-card results
+- Native Web APIs: Dialog, History, Local Storage, Service Worker, and Web App Manifest
+- Dependency-free EN/DE localization with persisted language preferences
+- Vitest, ESLint, and Prettier
 
 ## Project Structure
 
 ```text
+public/
+├── icons/                    PWA icon
+├── manifest*.webmanifest    Localized install metadata
+└── sw.js                     Offline and runtime caching
 src/
-├── api/       API client, request cache, and PokéAPI access
-├── state/     Loaded Pokémon and pagination state
-├── ui/        Request feedback and scroll locking
-└── utils/     Formatters, evolution parsing, media loading, and async helpers
-tests/         Formatter and evolution-parser tests
-img/           Local interface and background assets
-fonts/         Local font files
+├── api/                      API clients, validation, and request caches
+├── i18n/                     English/German messages and translation helpers
+├── pwa/                      Service-worker and install-prompt setup
+├── state/                    Pagination, collections, language, and view preferences
+├── ui/                       Dialogs, feedback, discovery actions, and scroll locks
+└── utils/                    Formatters, parsers, media, routing, and comparison logic
+tests/                        Vitest unit tests
+docs/screenshots/             README previews
+img/                          Pre-existing local visual assets
+fonts/                        Local Lato font files
 ```
 
-The application entry point is `src/main.js`. Existing presentation modules at
-the project root handle the cards and detail dialog while shared data, state,
-and utility concerns live in `src/`.
+`src/main.js` is the application entry point. The legacy presentation modules at
+the project root remain recognizable, while reusable API, state, UI, and utility
+logic is separated under `src/`.
 
 ## Getting Started
 
 ### Requirements
 
-- Node.js 20.19+ on the 20.x release line, or Node.js 22.12+
+- Node.js 20.19+ or 22.12+
 - npm
 
 ### Installation
@@ -66,67 +94,117 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by Vite.
+Open the local URL printed by Vite. Do not use VS Code Live Server for this
+version because Vite resolves the ES modules and bundled assets.
 
 ## Available Scripts
 
-| Command                | Purpose                                 |
-| ---------------------- | --------------------------------------- |
-| `npm run dev`          | Start the Vite development server       |
-| `npm run build`        | Create the production build in `dist/`  |
-| `npm run preview`      | Preview the production build locally    |
-| `npm test`             | Run all Vitest tests once               |
-| `npm run test:watch`   | Run tests in watch mode                 |
-| `npm run lint`         | Check JavaScript with ESLint            |
-| `npm run format`       | Format supported files with Prettier    |
-| `npm run format:check` | Check formatting without changing files |
+| Command                        | Purpose                                 |
+| ------------------------------ | --------------------------------------- |
+| `npm run dev`                  | Start the Vite development server       |
+| `npm run build`                | Create a production build in `dist/`    |
+| `npm run preview`              | Preview the production build locally    |
+| `npm test`                     | Run all Vitest tests once               |
+| `npm run test:watch`           | Run tests in watch mode                 |
+| `npm run lint`                 | Check JavaScript with ESLint            |
+| `npm run format`               | Format supported files with Prettier    |
+| `npm run format:check`         | Check formatting without changing files |
+| `npm run check`                | Run tests, lint, formatting, and build  |
+| `npm run update:pokemon-names` | Refresh the pinned German name data     |
 
 ## Quality Checks
 
-Vitest covers name and ID formatting, height and weight conversion, base-stat
-normalization, and evolution parsing. The evolution tests include Pokémon with
-no evolution as well as branching chains.
+The unit tests cover formatting and conversions, base-stat normalization,
+branching evolution parsing and conditions, search/filter/sort behavior, URL
+state, media fallbacks, Shiny preferences, collections, comparison, random/daily
+selection, localization fallbacks and persistence, and Pokémon TCG API validation
+and caching.
 
 Run the complete local check with:
 
 ```bash
-npm test
-npm run lint
-npm run format:check
-npm run build
+npm run check
 ```
+
+## API and Loading Strategy
+
+The central clients validate identifiers, check `response.ok`, normalize external
+data, cache completed responses, and deduplicate requests that are already in
+flight. Controlled concurrency prevents a large batch from firing every request
+at once. Media needed for a Pokémon list or detail dialog is decoded before the
+full-screen loader ends.
+
+The language switch translates the interface, Pokémon names and types,
+measurements, status values, evolution conditions, and available PokéAPI species
+and ability descriptions. English is the default and safe fallback. German
+species names are generated from a pinned revision of PokéAPI's BSD-3-Clause
+licensed data, so switching, searching, and sorting do not require extra runtime
+requests. API identifiers, URLs, form suffixes, item names, and third-party TCG
+data remain canonical.
+
+The optional trading-card tab is loaded on demand so a slow or rate-limited
+secondary API never blocks the core Pokédex. Its result and images are cached
+after the first successful request.
+
+## PWA and Offline Behavior
+
+The production build registers a dependency-free service worker. It caches the
+application shell, uses network-first behavior with cached fallbacks for API
+responses, and stale-while-revalidate for viewed media. A supported browser shows
+an **Install app** button only when its install criteria are met. A live status
+message also explains when the app is offline and confirms when the connection
+returns. The linked install manifest follows the selected interface language.
+
+The first visit and uncached Pokémon still require an internet connection. Offline
+mode can reuse only application files and data/media that have already been cached.
+Service workers require HTTPS in production; `localhost` is allowed for local
+testing.
 
 ## Static Deployment
 
-Create the production build:
+Create and preview the production output:
 
 ```bash
 npm run build
+npm run preview
 ```
 
-Deploy the contents of `dist/` to a static host such as GitHub Pages, Netlify,
-or Vercel. Vite uses relative asset paths so the build also works below a
-repository subpath. Preview the production result through `npm run preview`
-rather than opening `dist/index.html` directly.
+Deploy the generated `dist/` directory to a static host such as GitHub Pages,
+Netlify, Cloudflare Pages, or Vercel. The Vite configuration uses relative asset
+paths, so the build can also run below a repository subpath. Use the following
+generic host settings:
 
-The deployed application needs an internet connection because Pokémon data,
-artwork, animated sprites, and cries are requested at runtime.
+- Build command: `npm run build`
+- Publish directory: `dist`
+
+For GitHub Pages, a manually triggered workflow is included at
+`.github/workflows/deploy-pages.yml`. After pushing the repository, select
+**GitHub Actions** as the Pages source and run **Deploy Pokédex to GitHub Pages**
+from the Actions tab. The workflow never deploys automatically on a normal push.
+
+After deployment, replace the live-demo placeholder at the top of this README.
 
 ## Data, Assets, and Disclaimer
 
-Pokémon data and remote media are retrieved from the
-[PokéAPI](https://pokeapi.co/) and its sprite repository.
+Core data and remote sprites are retrieved from
+[PokéAPI](https://pokeapi.co/docs/v2). Its fair-use guidance asks applications to
+cache requested resources; this project uses in-memory request caches and a
+service-worker runtime cache.
 
-This is an unofficial fan project created for educational and portfolio
-purposes. It is not affiliated with or endorsed by Nintendo, Game Freak, or The
-Pokémon Company. Pokémon names, characters, and related assets belong to their
-respective rights holders.
+Trading-card data and images are retrieved from the
+[Pokémon TCG API](https://docs.pokemontcg.io/). The project intentionally works
+without an API key and therefore keeps requests limited, lazy, cached, and
+retryable.
 
-The local files in `img/` and `fonts/` originate from the pre-existing
-educational project. Their individual sources and licenses are not documented
-in this repository, so this project does not grant permission to reuse them.
-Before commercial redistribution, verify their licenses or replace them with
-clearly licensed alternatives.
+This is an unofficial fan project created for educational and portfolio purposes.
+It is not affiliated with or endorsed by Nintendo, Game Freak, Creatures Inc., or
+The Pokémon Company. Pokémon names, characters, trading cards, and related assets
+belong to their respective rights holders.
+
+The local files in `img/` and `fonts/` came from the pre-existing educational
+project. Their individual sources and licenses are not documented in this
+repository, so this project does not grant permission to reuse them. Verify or
+replace those assets before commercial redistribution.
 
 ## License
 
