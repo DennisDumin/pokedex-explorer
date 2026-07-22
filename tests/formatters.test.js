@@ -27,6 +27,17 @@ describe('Pokémon formatters', () => {
     expect(formatWeight(1000)).toBe('220.5 lb (100.0 kg)');
     expect(formatWeight(undefined)).toBe('Not available');
   });
+
+  it('formats German measurements metric-first with decimal commas', () => {
+    expect(formatHeight(7, 'de')).toBe('70 cm (2′ 4″)');
+    expect(formatHeight(17, 'de-DE')).toBe('1,7 m (5′ 7″)');
+    expect(formatWeight(69, 'de')).toBe('6,9 kg (15,2 lb)');
+    expect(formatWeight(undefined, 'de')).toBe('Nicht verfügbar');
+  });
+
+  it('localizes the fallback for an unknown Pokémon', () => {
+    expect(formatPokemonName('', 'de')).toBe('Unbekanntes Pokémon');
+  });
 });
 
 describe('base stat presentation', () => {
