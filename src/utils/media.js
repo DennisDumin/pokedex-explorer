@@ -1,16 +1,20 @@
 import { mapWithConcurrency } from './async.js';
+import { getPokemonAnimation, getPokemonArtwork } from './pokemon-media.js';
 
 const MEDIA_LOAD_TIMEOUT = 10000;
 
-function getPokemonMediaUrls(pokemon) {
-  const artwork = pokemon.sprites?.other?.['official-artwork']?.front_default;
-  const animatedSprite =
-    pokemon.sprites?.other?.showdown?.front_default ??
-    pokemon.sprites?.versions?.['generation-v']?.['black-white']?.animated
-      ?.front_default ??
-    pokemon.sprites?.front_default;
+function getPokemonMediaUrls(pokemon, { includeShiny = false } = {}) {
+  const variants = includeShiny ? [false, true] : [false];
 
-  return [artwork, animatedSprite].filter(Boolean);
+  return variants.flatMap((shiny) => {
+    const fallbackUrl = shiny
+      ? pokemon?.sprites?.front_shiny
+      : pokemon?.sprites?.front_default;
+    const artwork = getPokemonArtwork(pokemon, { shiny });
+    const animatedSprite = getPokemonAnimation(pokemon, { fallbackUrl, shiny });
+
+    return [artwork, animatedSprite].filter(Boolean);
+  });
 }
 
 function preloadImage(url) {
@@ -21,7 +25,7 @@ function preloadImage(url) {
     const finish = async () => {
       if (isSettled) return;
       isSettled = true;
-      window.clearTimeout(timeoutId);
+      globalThis.clearTimeout(timeoutId);
 
       if (image.naturalWidth > 0 && typeof image.decode === 'function') {
         try {
@@ -34,17 +38,35 @@ function preloadImage(url) {
       resolve();
     };
 
-    const timeoutId = window.setTimeout(finish, MEDIA_LOAD_TIMEOUT);
+    const timeoutId = globalThis.setTimeout(finish, MEDIA_LOAD_TIMEOUT);
     image.addEventListener('load', finish, { once: true });
     image.addEventListener('error', finish, { once: true });
     image.src = url;
   });
 }
 
-async function preloadPokemonMedia(pokemon, { concurrency = 6 } = {}) {
-  const mediaUrls = [...new Set(pokemon.flatMap((entry) => getPokemonMediaUrls(entry)))];
+async function preloadPokemonMedia(
+  pokemon,
+  { concurrency = 6, includeShiny = false } = {},
+) {
+  const entries = Array.isArray(pokemon) ? pokemon : [];
+  const mediaUrls = [
+    ...new Set(entries.flatMap((entry) => getPokemonMediaUrls(entry, { includeShiny }))),
+  ];
 
   await mapWithConcurrency(mediaUrls, preloadImage, { concurrency });
 }
 
-export { preloadPokemonMedia };
+async function preloadMediaUrls(urls, { concurrency = 6 } = {}) {
+  const mediaUrls = [
+    ...new Set(
+      (Array.isArray(urls) ? urls : []).filter(
+        (url) => typeof url === 'string' && url.trim() !== '',
+      ),
+    ),
+  ];
+
+  await mapWithConcurrency(mediaUrls, preloadImage, { concurrency });
+}
+
+export { preloadMediaUrls, preloadPokemonMedia };
