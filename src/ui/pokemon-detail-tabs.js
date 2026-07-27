@@ -1,8 +1,7 @@
-import evolutionArrowUrl from './img/arrow.svg';
-import pokemonFallbackUrl from './img/pokeball-icon.svg';
-import { getPokemonImage, getPokemonName, getTypeColor } from './script.js';
-import { getLanguage, t, translateType } from './src/i18n/index.js';
-import { formatEvolutionConditions } from './src/utils/evolution.js';
+import evolutionArrowUrl from '../../img/arrow.svg';
+import pokemonFallbackUrl from '../../img/pokeball-icon.svg';
+import { getLanguage, t, translateType } from '../i18n/index.js';
+import { formatEvolutionConditions } from '../utils/evolution.js';
 import {
   MAX_BASE_STAT,
   formatHeight,
@@ -10,9 +9,10 @@ import {
   formatWeight,
   getStatColor,
   normalizeBaseStat,
-} from './src/utils/formatters.js';
-import { getSpeciesSummary } from './src/utils/species.js';
-import { calculateTypeMatchups } from './src/utils/type-matchups.js';
+} from '../utils/formatters.js';
+import { getSpeciesSummary } from '../utils/species.js';
+import { calculateTypeMatchups } from '../utils/type-matchups.js';
+import { getPokemonImage, getPokemonName, getTypeColor } from './pokemon-catalog.js';
 
 const GENERATION_KEYS = Object.freeze({
   i: '1',

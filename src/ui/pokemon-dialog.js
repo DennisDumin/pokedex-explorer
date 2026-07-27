@@ -4,35 +4,31 @@ import {
   getPokemonNumber,
   getTypeColor,
   getVisiblePokemonIds,
-} from './script.js';
-import pokemonFallbackUrl from './img/pokeball-icon.svg';
-import { getPokemonDetails } from './src/api/pokemon-details.js';
-import { getResourceId } from './src/api/pokemon-api.js';
-import { getPokemonCards } from './src/api/tcg-api.js';
-import { onLanguageChange, t, translateType } from './src/i18n/index.js';
-import { collectionStore } from './src/state/collections.js';
-import { comparisonSelectionStore } from './src/state/comparison-selection.js';
-import { createViewPreferences } from './src/state/view-preferences.js';
-import {
-  beginRequest,
-  clearRequestError,
-  showRequestError,
-} from './src/ui/request-feedback.js';
-import { acquireScrollLock } from './src/ui/scroll-lock.js';
-import { togglePokemonComparison } from './src/ui/comparison.js';
+} from './pokemon-catalog.js';
+import pokemonFallbackUrl from '../../img/pokeball-icon.svg';
+import { getPokemonDetails } from '../api/pokemon-details.js';
+import { getResourceId } from '../api/pokemon-api.js';
+import { getPokemonCards } from '../api/tcg-api.js';
+import { onLanguageChange, t, translateType } from '../i18n/index.js';
+import { collectionStore } from '../state/collections.js';
+import { comparisonSelectionStore } from '../state/comparison-selection.js';
+import { createViewPreferences } from '../state/view-preferences.js';
+import { beginRequest, clearRequestError, showRequestError } from './request-feedback.js';
+import { acquireScrollLock } from './scroll-lock.js';
+import { togglePokemonComparison } from './comparison.js';
 import {
   openPokemonDetailRoute,
   parsePokemonDetailRoute,
   removePokemonDetailRoute,
   updatePokemonDetailRoute,
-} from './src/utils/detail-route.js';
-import { preloadMediaUrls, preloadPokemonMedia } from './src/utils/media.js';
-import { prefersReducedMotion } from './src/utils/motion.js';
+} from '../utils/detail-route.js';
+import { preloadMediaUrls, preloadPokemonMedia } from '../utils/media.js';
+import { prefersReducedMotion } from '../utils/motion.js';
 import {
   getPokemonAnimation as selectPokemonAnimation,
   getPokemonArtwork,
-} from './src/utils/pokemon-media.js';
-import { cardHTML } from './pokemonBigCardHTML.js';
+} from '../utils/pokemon-media.js';
+import { cardHTML } from './pokemon-dialog-template.js';
 import {
   generateAboutHTML,
   generateBaseStatsHTML,
@@ -41,7 +37,7 @@ import {
   generateTradingCardsHTML,
   generateTradingCardsLoadingHTML,
   generateTypeMatchupsHTML,
-} from './pokemonCardMenu.js';
+} from './pokemon-detail-tabs.js';
 
 const POKEMON_CRY_VOLUME = 0.12;
 const MENU_POINT_BY_ROUTE_TAB = Object.freeze({

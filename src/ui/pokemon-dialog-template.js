@@ -1,8 +1,8 @@
-import { checkIfType1Available } from './script.js';
-import arrowLeftUrl from './img/arrow-left.svg';
-import arrowRightUrl from './img/arrow-right.svg';
-import closeIconUrl from './img/cross.svg';
-import { t } from './src/i18n/index.js';
+import arrowLeftUrl from '../../img/arrow-left.svg';
+import arrowRightUrl from '../../img/arrow-right.svg';
+import closeIconUrl from '../../img/cross.svg';
+import { t } from '../i18n/index.js';
+import { checkIfType1Available } from './pokemon-catalog.js';
 
 function cardHTML({
   backgroundColor,

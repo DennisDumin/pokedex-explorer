@@ -1,20 +1,20 @@
-import '../style.css';
-import '../pokemonBigCard.css';
-import '../collections.css';
-import '../fonts.css';
-import '../mediaQueries.css';
+import './styles/fonts.css';
+import './styles/app.css';
+import './styles/pokemon-dialog.css';
+import './styles/collections.css';
+import './styles/responsive.css';
 
 import {
   initPokemonCardInteractions,
   initPokemonListControls,
   loadPokemonApi,
   restorePokemonListFromUrl,
-} from '../script.js';
+} from './ui/pokemon-catalog.js';
 import {
   initPokemonDialog,
   renderOneCard,
   restorePokemonDialogFromUrl,
-} from '../pokemonBigCard.js';
+} from './ui/pokemon-dialog.js';
 import { initCollectionUi } from './ui/collections.js';
 import { initComparisonUi } from './ui/comparison.js';
 import { initConnectivityStatus } from './ui/connectivity-status.js';

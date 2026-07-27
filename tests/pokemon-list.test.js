@@ -3,7 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   filterAndSortPokemon,
   findPokemonCatalogMatches,
+  getNextResultLimit,
   getPokemonId,
+  getRemainingResultCount,
 } from '../src/utils/pokemon-list.js';
 
 function pokemon(id, name, types = []) {
@@ -127,5 +129,18 @@ describe('findPokemonCatalogMatches', () => {
 
   it('returns no results for an explicit limit of zero', () => {
     expect(findPokemonCatalogMatches(catalog, {}, { limit: 0 })).toEqual([]);
+  });
+});
+
+describe('discovery result pagination', () => {
+  it('adds the selected amount without exceeding the total matches', () => {
+    expect(getNextResultLimit(20, 20, 151)).toBe(40);
+    expect(getNextResultLimit(140, 20, 151)).toBe(151);
+  });
+
+  it('reports only the number of results that are still hidden', () => {
+    expect(getRemainingResultCount(20, 151)).toBe(131);
+    expect(getRemainingResultCount(151, 151)).toBe(0);
+    expect(getRemainingResultCount(160, 151)).toBe(0);
   });
 });

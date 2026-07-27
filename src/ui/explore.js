@@ -1,8 +1,8 @@
-import { renderOneCard } from '../../pokemonBigCard.js';
 import { getPokemonCatalog } from '../api/pokemon-api.js';
 import { t } from '../i18n/index.js';
 import { beginRequest, clearRequestError, showRequestError } from './request-feedback.js';
 import { pickDailyPokemon, pickRandomPokemon } from '../utils/random.js';
+import { renderOneCard } from './pokemon-dialog.js';
 
 let exploreActionsInitialized = false;
 let activeExploreRequest = null;

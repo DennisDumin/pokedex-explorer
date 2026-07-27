@@ -155,6 +155,21 @@ function getResultLimit(limit) {
   return Number.isSafeInteger(limit) && limit >= 0 ? limit : DEFAULT_CATALOG_RESULT_LIMIT;
 }
 
+function getRemainingResultCount(renderedCount, totalCount) {
+  const rendered = Number.isSafeInteger(renderedCount) ? Math.max(0, renderedCount) : 0;
+  const total = Number.isSafeInteger(totalCount) ? Math.max(0, totalCount) : 0;
+
+  return Math.max(0, total - rendered);
+}
+
+function getNextResultLimit(currentLimit, increment, totalCount) {
+  const current = Number.isSafeInteger(currentLimit) ? Math.max(0, currentLimit) : 0;
+  const amount = Number.isSafeInteger(increment) ? Math.max(0, increment) : 0;
+  const total = Number.isSafeInteger(totalCount) ? Math.max(0, totalCount) : 0;
+
+  return Math.min(total, current + amount);
+}
+
 function findPokemonCatalogMatches(catalog, state = {}, { limit, ...options } = {}) {
   if (!Array.isArray(catalog)) return [];
 
@@ -174,6 +189,8 @@ export {
   DEFAULT_CATALOG_RESULT_LIMIT,
   filterAndSortPokemon,
   findPokemonCatalogMatches,
+  getNextResultLimit,
   getPokemonId,
+  getRemainingResultCount,
   matchesQuery,
 };

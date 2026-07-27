@@ -1,5 +1,4 @@
 import pokemonFallbackUrl from '../../img/pokeball-icon.svg';
-import { getPokemonImage, getPokemonName, getPokemonNumber } from '../../script.js';
 import { getPokemonBatch } from '../api/pokemon-api.js';
 import { getLanguage, onLanguageChange, t } from '../i18n/index.js';
 import { comparisonSelectionStore } from '../state/comparison-selection.js';
@@ -7,6 +6,7 @@ import { cachePokemon, getPokemonById } from '../state/pokemon-store.js';
 import { comparePokemonStats } from '../utils/comparison.js';
 import { formatPokemonName, normalizeBaseStat } from '../utils/formatters.js';
 import { preloadPokemonMedia } from '../utils/media.js';
+import { getPokemonImage, getPokemonName, getPokemonNumber } from './pokemon-catalog.js';
 import { beginRequest, clearRequestError, showRequestError } from './request-feedback.js';
 import { acquireScrollLock } from './scroll-lock.js';
 
