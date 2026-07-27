@@ -7,12 +7,6 @@ frontend framework.
 
 > **Live demo:** Add the deployed project URL here.
 
-## Preview
-
-![Responsive Pokédex overview](docs/screenshots/pokedex-overview.png)
-
-![Pokémon detail dialog](docs/screenshots/pokedex-details.png)
-
 ## Highlights
 
 - Searches the complete Pokédex by name or real Pokédex number
@@ -65,20 +59,23 @@ public/
 └── sw.js                     Offline and runtime caching
 src/
 ├── api/                      API clients, validation, and request caches
+├── data/                     Pinned localized Pokémon names
 ├── i18n/                     English/German messages and translation helpers
 ├── pwa/                      Service-worker and install-prompt setup
 ├── state/                    Pagination, collections, language, and view preferences
-├── ui/                       Dialogs, feedback, discovery actions, and scroll locks
-└── utils/                    Formatters, parsers, media, routing, and comparison logic
+├── styles/                   Application, dialog, collection, and responsive styles
+├── ui/                       Catalog, dialogs, templates, feedback, and interactions
+├── utils/                    Formatters, parsers, media, routing, and comparison logic
+└── main.js                   Application entry point
+scripts/                      Maintenance scripts
 tests/                        Vitest unit tests
-docs/screenshots/             README previews
 img/                          Pre-existing local visual assets
 fonts/                        Local Lato font files
 ```
 
-`src/main.js` is the application entry point. The legacy presentation modules at
-the project root remain recognizable, while reusable API, state, UI, and utility
-logic is separated under `src/`.
+All runtime JavaScript and CSS lives under `src/`. The project root is reserved
+for HTML, package and tooling configuration, documentation, and the pre-existing
+asset directories.
 
 ## Getting Started
 
