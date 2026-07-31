@@ -1,0 +1,74 @@
+/* Pokemon search */
+
+#Search_Pokemon {
+  width: 100%;
+  padding: 10px;
+  padding-right: 42px;
+  border-radius: 15px;
+  border: none;
+  font: inherit;
+  appearance: none;
+}
+
+#Search_Pokemon::-webkit-search-cancel-button {
+  appearance: none;
+}
+
+#Search_Pokemon:focus-visible {
+  outline: 3px solid #2e7d32;
+  outline-offset: 3px;
+}
+
+.inputWithReset {
+  position: relative;
+  display: block;
+}
+
+#Reset_Btn {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  color: #26313d;
+  font-size: 1.35rem;
+  line-height: 1;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 50%;
+  transform: translateY(-50%);
+}
+
+#Reset_Btn:hover {
+  background: #e7ebee;
+}
+
+#Reset_Btn:focus-visible {
+  outline: 3px solid #2e7d32;
+}
+
+#filterMessage {
+  min-height: 20px;
+  padding-top: 8px;
+  margin: 0;
+}
+
+/* Scrollbars */
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

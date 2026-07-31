@@ -1,19 +1,11 @@
-import './styles/fonts.css';
-import './styles/app.css';
-import './styles/pokemon-dialog.css';
-import './styles/pokemon-detail-content.css';
-import './styles/pokemon-evolution.css';
-import './styles/pokemon-matchups-cards.css';
-import './styles/pokemon-dialog-responsive.css';
-import './styles/collections.css';
-import './styles/responsive.css';
+import './styles/index.css';
 
 import {
-  initPokemonCardInteractions,
   initPokemonListControls,
-  loadPokemonApi,
   restorePokemonListFromUrl,
 } from './ui/pokemon-catalog.js';
+import { initPokemonCardInteractions } from './ui/pokemon-card.js';
+import { prefetchPokemonDetails } from './ui/pokemon-detail-prefetch.js';
 import {
   initPokemonDialog,
   renderOneCard,
@@ -32,7 +24,10 @@ import {
 
 async function bootstrap() {
   initLanguageSwitcher();
-  initPokemonCardInteractions({ onSelect: renderOneCard });
+  initPokemonCardInteractions({
+    onPrefetch: prefetchPokemonDetails,
+    onSelect: renderOneCard,
+  });
   initPokemonListControls();
   initPokemonDialog();
   initCollectionUi();
@@ -40,8 +35,7 @@ async function bootstrap() {
   initConnectivityStatus();
   initExploreActions();
   initImageFallbacks();
-  await registerServiceWorker();
-  await loadPokemonApi();
+  void registerServiceWorker();
   await restorePokemonListFromUrl();
   await restorePokemonDialogFromUrl();
 }

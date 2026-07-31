@@ -1,0 +1,193 @@
+/* Collection and comparison interaction states */
+
+.app-action-button:focus-visible,
+.language-switcher select:focus-visible,
+.secondary-dialog-close:focus-visible,
+.collection-tab:focus-visible,
+.collection-pokemon-button:focus-visible,
+.collection-remove-button:focus-visible,
+.collection-compare-button:focus-visible,
+.comparison-selection-bar button:focus-visible {
+  outline: 3px solid #c02533;
+  outline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .language-switcher {
+    min-height: 40px;
+    padding-left: 10px;
+  }
+
+  .language-switcher select {
+    min-height: 28px;
+  }
+
+  .collection-dialog,
+  .comparison-dialog {
+    width: calc(100vw - 12px);
+    height: calc(100dvh - 12px);
+    border-radius: 18px;
+  }
+
+  .secondary-dialog-header {
+    padding: 14px 16px;
+  }
+
+  .collection-content {
+    padding: 10px;
+    grid-template-columns: 1fr;
+  }
+
+  .collection-tab {
+    padding-inline: 10px;
+    font-size: 0.82rem;
+  }
+
+  .comparison-content {
+    padding: 12px;
+  }
+
+  .comparison-pokemon img {
+    width: min(100%, 96px);
+    height: 96px;
+  }
+
+  .comparison-pokemon {
+    gap: 6px;
+  }
+
+  .comparison-pokemon article {
+    min-height: 210px;
+    padding: 10px 6px;
+  }
+
+  .comparison-pokemon strong {
+    font-size: 0.88rem;
+  }
+
+  .comparison-pokemon-types {
+    gap: 3px;
+  }
+
+  .comparison-pokemon-types .type {
+    padding: 4px 6px;
+    font-size: 0.56rem;
+  }
+
+  .comparison-versus {
+    width: 34px;
+    height: 34px;
+    font-size: 0.68rem;
+  }
+
+  .comparison-selection-bar {
+    padding: 9px 10px;
+    gap: 8px;
+  }
+
+  .comparison-selection-bar p {
+    font-size: 0.72rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .comparison-dialog {
+    width: calc(100vw - 8px);
+    height: calc(100dvh - 8px);
+    border-radius: 14px;
+  }
+
+  .comparison-dialog .secondary-dialog-header {
+    padding: 10px 12px;
+  }
+
+  .comparison-dialog .secondary-dialog-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .comparison-dialog .dialog-eyebrow {
+    font-size: 0.6rem;
+  }
+
+  .comparison-dialog .secondary-dialog-close {
+    width: 40px;
+    height: 40px;
+  }
+
+  .comparison-content {
+    padding: 8px;
+    overscroll-behavior: contain;
+  }
+
+  .comparison-pokemon {
+    position: relative;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .comparison-pokemon article {
+    min-height: 190px;
+    padding: 8px 5px;
+    align-content: center;
+    gap: 4px;
+    border-radius: 14px;
+  }
+
+  .comparison-pokemon img {
+    width: clamp(76px, 22vw, 92px);
+    height: clamp(76px, 22vw, 92px);
+  }
+
+  .comparison-pokemon strong {
+    font-size: 0.82rem;
+  }
+
+  .comparison-pokemon-number {
+    padding: 3px 7px;
+    font-size: 0.7rem;
+  }
+
+  .comparison-pokemon-types {
+    min-height: 21px;
+    margin-top: 0;
+    gap: 2px;
+  }
+
+  .comparison-pokemon-types .type {
+    padding: 3px 5px;
+    font-size: 0.52rem;
+  }
+
+  .comparison-versus {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 32px;
+    height: 32px;
+    font-size: 0.64rem;
+    border-width: 2px;
+    transform: translate(-50%, -50%);
+  }
+
+  .comparison-result {
+    padding: 8px 9px;
+    margin: 10px 0;
+    font-size: 0.84rem;
+    line-height: 1.3;
+  }
+
+  .comparison-stats {
+    gap: 9px;
+  }
+
+  .comparison-stat-values {
+    gap: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collection-tab::after {
+    transition: none;
+  }
+}

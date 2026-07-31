@@ -1,0 +1,15 @@
+@import './fonts.css';
+@import './app.css';
+@import './pokemon-catalog.css';
+@import './loading-feedback.css';
+@import './pokemon-search.css';
+@import './pokemon-dialog.css';
+@import './pokemon-detail-content.css';
+@import './pokemon-evolution.css';
+@import './pokemon-matchups-cards.css';
+@import './pokemon-dialog-responsive.css';
+@import './collections.css';
+@import './collection-dialog.css';
+@import './comparison.css';
+@import './collections-responsive.css';
+@import './responsive.css';

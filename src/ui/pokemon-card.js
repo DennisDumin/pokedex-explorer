@@ -5,6 +5,7 @@ import { collectionStore } from '../state/collections.js';
 import { comparisonSelectionStore } from '../state/comparison-selection.js';
 import { cachePokemon, getPokemonById } from '../state/pokemon-store.js';
 import { formatPokemonNumber } from '../utils/formatters.js';
+import { isMediaPreloaded, preloadMediaUrls } from '../utils/media.js';
 import { prefersReducedMotion } from '../utils/motion.js';
 import {
   getPokemonAnimation as selectPokemonAnimation,
@@ -49,9 +50,14 @@ const TYPE_COLOR_DARKENING = {
   water: 0.04,
 };
 
+const DETAIL_PREFETCH_DELAY = 250;
+
 let cardInteractionsInitialized = false;
+let detailPrefetchTimerId = null;
+let prefetchPokemonCard = null;
 let selectPokemonCard = null;
 let visiblePokemonIds = [];
+const cardAnimationVersions = new WeakMap();
 
 function renderPokemonCards(pokemon) {
   cachePokemon(pokemon);
@@ -120,6 +126,9 @@ function generatePokemonCard({
         <img
           class="pokemon-card__image"
           src="${image}"
+          width="240"
+          height="240"
+          decoding="async"
           data-image-fallback="${pokemonFallbackUrl}"
           alt="${name}"
         />
@@ -221,16 +230,32 @@ function getCardElement(pokemonId, cardElement) {
   );
 }
 
-function showGif(pokemonId, cardElement) {
+async function showGif(pokemonId, cardElement) {
   if (prefersReducedMotion()) return;
 
   const pokemon = getPokemonById(pokemonId);
-  const image = getCardElement(pokemonId, cardElement)?.querySelector(
-    '.pokemon-card__image',
-  );
+  const card = getCardElement(pokemonId, cardElement);
   const animatedSprite = getPokemonAnimation(pokemon) ?? pokemon?.sprites?.front_default;
 
-  if (image && animatedSprite && image.src !== animatedSprite) {
+  if (!card || !animatedSprite) return;
+
+  const animationVersion = (cardAnimationVersions.get(card) ?? 0) + 1;
+  cardAnimationVersions.set(card, animationVersion);
+
+  await preloadMediaUrls([animatedSprite], { concurrency: 1 });
+
+  if (
+    cardAnimationVersions.get(card) !== animationVersion ||
+    !isMediaPreloaded(animatedSprite) ||
+    !card.isConnected ||
+    !card.matches(':hover')
+  ) {
+    return;
+  }
+
+  const image = card.querySelector('.pokemon-card__image');
+
+  if (image && image.src !== animatedSprite) {
     image.dataset.imageFallback = getPokemonImage(pokemon);
     image.dataset.imageFinalFallback = pokemonFallbackUrl;
     image.classList.add('is-animated');
@@ -240,10 +265,13 @@ function showGif(pokemonId, cardElement) {
 
 function showImg(pokemonId, cardElement) {
   const pokemon = getPokemonById(pokemonId);
-  const image = getCardElement(pokemonId, cardElement)?.querySelector(
-    '.pokemon-card__image',
-  );
+  const card = getCardElement(pokemonId, cardElement);
+  const image = card?.querySelector('.pokemon-card__image');
   const artwork = getPokemonImage(pokemon);
+
+  if (card) {
+    cardAnimationVersions.set(card, (cardAnimationVersions.get(card) ?? 0) + 1);
+  }
 
   if (image && image.src !== artwork) {
     image.dataset.imageFallback = pokemonFallbackUrl;
@@ -253,7 +281,32 @@ function showImg(pokemonId, cardElement) {
   }
 }
 
-function initPokemonCardInteractions({ onSelect }) {
+function cancelScheduledDetailPrefetch() {
+  if (detailPrefetchTimerId === null) return;
+
+  window.clearTimeout(detailPrefetchTimerId);
+  detailPrefetchTimerId = null;
+}
+
+function runDetailPrefetch(card) {
+  const pokemonId = Number(card?.dataset?.pokemonId);
+
+  if (!Number.isSafeInteger(pokemonId) || pokemonId < 1) return;
+  void Promise.resolve(prefetchPokemonCard?.(pokemonId)).catch(() => {});
+}
+
+function scheduleDetailPrefetch(card) {
+  cancelScheduledDetailPrefetch();
+  if (!prefetchPokemonCard) return;
+
+  detailPrefetchTimerId = window.setTimeout(() => {
+    detailPrefetchTimerId = null;
+    runDetailPrefetch(card);
+  }, DETAIL_PREFETCH_DELAY);
+}
+
+function initPokemonCardInteractions({ onPrefetch, onSelect }) {
+  prefetchPokemonCard = onPrefetch;
   selectPokemonCard = onSelect;
 
   if (cardInteractionsInitialized) return;
@@ -264,21 +317,32 @@ function initPokemonCardInteractions({ onSelect }) {
     const card = event.target.closest('.pokedex');
     if (!card || !cardContainer.contains(card)) return;
 
-    selectPokemonCard?.(Number(card.dataset.pokemonId), card);
+    const pokemonId = Number(card.dataset.pokemonId);
+    showImg(pokemonId, card);
+    selectPokemonCard?.(pokemonId, card);
   });
 
   cardContainer.addEventListener('pointerover', (event) => {
     const card = event.target.closest('.pokedex');
     if (!card || card.contains(event.relatedTarget)) return;
 
-    showGif(Number(card.dataset.pokemonId), card);
+    void showGif(Number(card.dataset.pokemonId), card);
+    scheduleDetailPrefetch(card);
   });
 
   cardContainer.addEventListener('pointerout', (event) => {
     const card = event.target.closest('.pokedex');
     if (!card || card.contains(event.relatedTarget)) return;
 
+    cancelScheduledDetailPrefetch();
     showImg(Number(card.dataset.pokemonId), card);
+  });
+  cardContainer.addEventListener('focusin', (event) => {
+    const card = event.target.closest('.pokedex');
+    if (!card || !cardContainer.contains(card)) return;
+
+    cancelScheduledDetailPrefetch();
+    runDetailPrefetch(card);
   });
   collectionStore.subscribe(updatePokemonCardBadges);
   comparisonSelectionStore.subscribe(updatePokemonCardBadges);

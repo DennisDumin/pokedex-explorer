@@ -1,0 +1,159 @@
+/* Pokemon comparison */
+
+.comparison-content {
+  min-height: 0;
+  padding: 18px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.comparison-pokemon {
+  display: grid;
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 12px;
+}
+
+.comparison-pokemon article {
+  display: grid;
+  min-width: 0;
+  min-height: 236px;
+  padding: 14px 12px 12px;
+  box-sizing: border-box;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  color: white;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+.comparison-pokemon img {
+  max-width: 100%;
+  width: min(160px, 28vw);
+  height: min(160px, 28vw);
+  object-fit: contain;
+  filter: drop-shadow(0 10px 10px rgba(15, 23, 42, 0.22));
+}
+
+.comparison-pokemon strong {
+  max-width: 100%;
+  overflow: hidden;
+  padding-block: 0.08em;
+  margin-block: -0.08em;
+  font-size: 1.05rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.comparison-pokemon-number {
+  padding: 4px 9px;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 0.78rem;
+  font-weight: 800;
+  background: rgba(15, 23, 42, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  border-radius: 999px;
+}
+
+.comparison-pokemon-types {
+  display: flex;
+  min-height: 25px;
+  margin-top: 2px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+}
+
+.comparison-pokemon-types .type {
+  padding: 5px 9px;
+  font-size: 0.65rem;
+  box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.2);
+}
+
+.comparison-versus {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 900;
+  background: #c02533;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.24);
+  pointer-events: none;
+}
+
+.comparison-result {
+  padding: 10px 12px;
+  margin: 14px 0;
+  color: #263442;
+  font-weight: 800;
+  text-align: center;
+  background: #eef4f8;
+  border-radius: 10px;
+}
+
+.comparison-stats {
+  display: grid;
+  gap: 11px;
+}
+
+.comparison-stat-row {
+  display: grid;
+  gap: 5px;
+}
+
+.comparison-stat-name {
+  color: #68737e;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.comparison-stat-values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.comparison-stat-value {
+  display: grid;
+  gap: 4px;
+}
+
+.comparison-stat-value:nth-child(2) {
+  text-align: right;
+}
+
+.comparison-stat-value.is-winner strong {
+  color: #2f855a;
+}
+
+.comparison-stat-track {
+  height: 7px;
+  overflow: hidden;
+  background: #e1e6ea;
+  border-radius: 999px;
+}
+
+.comparison-stat-track span {
+  display: block;
+  height: 100%;
+  background: #64788f;
+  border-radius: inherit;
+}
+
+.comparison-stat-value:nth-child(2) .comparison-stat-track span {
+  margin-left: auto;
+}

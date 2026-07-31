@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { preloadPokemonMedia } from '../src/utils/media.js';
+import {
+  clearMediaPreloadCache,
+  isMediaPreloaded,
+  preloadPokemonMedia,
+} from '../src/utils/media.js';
 import { getPokemonAnimation, getPokemonArtwork } from '../src/utils/pokemon-media.js';
 
 function createPokemon() {
@@ -90,6 +94,7 @@ describe('preloadPokemonMedia', () => {
 
   beforeEach(() => {
     requestedUrls.length = 0;
+    clearMediaPreloadCache();
 
     class FakeImage {
       constructor() {
@@ -139,6 +144,17 @@ describe('preloadPokemonMedia', () => {
     );
   });
 
+  it('can preload artwork and animations independently', async () => {
+    const pokemon = createPokemon();
+
+    await preloadPokemonMedia([pokemon], { includeAnimation: false });
+    expect(requestedUrls).toEqual(['official-default.png']);
+
+    requestedUrls.length = 0;
+    await preloadPokemonMedia([pokemon], { includeArtwork: false });
+    expect(requestedUrls).toEqual(['showdown-default.gif']);
+  });
+
   it('deduplicates URLs and safely accepts missing input', async () => {
     const pokemon = createPokemon();
     pokemon.sprites.other.showdown.front_default = 'official-default.png';
@@ -149,5 +165,15 @@ describe('preloadPokemonMedia', () => {
     requestedUrls.length = 0;
     await expect(preloadPokemonMedia(null)).resolves.toBeUndefined();
     expect(requestedUrls).toEqual([]);
+  });
+
+  it('reuses successfully preloaded media across later requests', async () => {
+    const pokemon = createPokemon();
+
+    await preloadPokemonMedia([pokemon], { includeAnimation: false });
+    await preloadPokemonMedia([pokemon], { includeAnimation: false });
+
+    expect(requestedUrls).toEqual(['official-default.png']);
+    expect(isMediaPreloaded('official-default.png')).toBe(true);
   });
 });

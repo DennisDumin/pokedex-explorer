@@ -1,0 +1,258 @@
+/* Collection dialog */
+
+.collection-dialog,
+.comparison-dialog {
+  width: min(720px, calc(100vw - 24px));
+  height: min(720px, calc(100dvh - 24px));
+  max-width: none;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+  color: #18212b;
+  background: white;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.46);
+}
+
+.comparison-dialog {
+  width: min(620px, calc(100vw - 24px));
+}
+
+.collection-dialog::backdrop,
+.comparison-dialog::backdrop {
+  background: rgba(7, 12, 22, 0.84);
+}
+
+.collection-shell,
+.comparison-shell {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.secondary-dialog-header {
+  display: flex;
+  padding: 20px 22px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  gap: 16px;
+  color: white;
+  background: linear-gradient(135deg, #172335, #263b56);
+}
+
+.secondary-dialog-header h2 {
+  margin: 2px 0 0;
+  color: white;
+  font-size: clamp(1.35rem, 4vw, 1.8rem);
+}
+
+.secondary-dialog-description {
+  margin: 5px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.dialog-eyebrow {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.secondary-dialog-close {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  flex: 0 0 auto;
+  place-items: center;
+  color: white;
+  font: inherit;
+  font-size: 1.7rem;
+  line-height: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.collection-tabs {
+  display: flex;
+  padding: 8px 12px 0;
+  overflow-x: auto;
+  flex: 0 0 auto;
+  border-bottom: 1px solid #dfe4e8;
+  scrollbar-width: none;
+}
+
+.collection-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.collection-tab {
+  position: relative;
+  display: inline-flex;
+  min-width: max-content;
+  padding: 11px 14px 13px;
+  align-items: center;
+  gap: 6px;
+  color: #59636e;
+  font: inherit;
+  font-weight: 800;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.collection-tab::after {
+  position: absolute;
+  right: 12px;
+  bottom: -1px;
+  left: 12px;
+  height: 3px;
+  background: #c02533;
+  border-radius: 999px 999px 0 0;
+  content: '';
+  opacity: 0;
+}
+
+.collection-tab.is-active {
+  color: #18212b;
+}
+
+.collection-tab.is-active::after {
+  opacity: 1;
+}
+
+.collection-tab [data-collection-count] {
+  color: white;
+  background: #68737e;
+}
+
+.collection-section-description {
+  padding: 10px 16px;
+  margin: 0;
+  flex: 0 0 auto;
+  color: #59636e;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  background: #f3f5f7;
+  border-bottom: 1px solid #dfe4e8;
+}
+
+.collection-content {
+  display: grid;
+  min-height: 0;
+  padding: 16px;
+  overflow: auto;
+  align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  overscroll-behavior: contain;
+}
+
+.collection-card {
+  display: grid;
+  min-width: 0;
+  padding: 9px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  background: #f3f5f7;
+  border: 1px solid #dfe4e8;
+  border-radius: 14px;
+}
+
+.collection-pokemon-button {
+  display: grid;
+  min-width: 0;
+  padding: 0;
+  align-items: center;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px;
+  color: #18212b;
+  font: inherit;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.collection-pokemon-button img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.collection-pokemon-button > span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.collection-pokemon-button strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-pokemon-button small {
+  color: #68737e;
+  font-weight: 800;
+}
+
+.collection-card-actions {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.collection-remove-button {
+  min-height: 32px;
+  padding: 5px 8px;
+  color: #8a2933;
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: #fbe9eb;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.collection-compare-button {
+  display: inline-flex;
+  min-height: 32px;
+  padding: 5px 7px;
+  align-items: center;
+  gap: 4px;
+  color: #315b88;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #e8f1fb;
+  border: 1px solid #c9dced;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.collection-compare-button[aria-pressed='true'] {
+  color: #1f6b47;
+  background: #e5f5ec;
+  border-color: #b8dfca;
+}
+
+.collection-empty {
+  padding: 28px;
+  margin: auto;
+  grid-column: 1 / -1;
+  color: #68737e;
+  line-height: 1.5;
+  text-align: center;
+}

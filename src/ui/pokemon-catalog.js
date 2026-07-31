@@ -1,4 +1,3 @@
-import { onLanguageChange, t } from '../i18n/index.js';
 import {
   getGenerationPokemonIds,
   getPokemonBatch,
@@ -25,20 +24,15 @@ import {
   parsePokemonListState,
   updatePokemonListUrl,
 } from '../utils/url-state.js';
+import { getPokemonListLocalization, renderPokemonCards } from './pokemon-card.js';
 import {
-  checkIfType1Available,
-  getPokemonAnimation,
-  getPokemonImage,
-  getPokemonListLocalization,
-  getPokemonName,
-  getPokemonNumber,
-  getTypeColor,
-  getVisiblePokemonIds,
-  initPokemonCardInteractions,
-  renderPokemonCards,
-  showGif,
-  showImg,
-} from './pokemon-card.js';
+  initPokemonCatalogControls,
+  readPokemonListControls,
+  renderPokemonFilterMessage,
+  syncPokemonListControls,
+  updatePokemonLoadMoreButtonLabel,
+  updatePokemonLoadMoreControls,
+} from './pokemon-catalog-controls.js';
 import { beginRequest, clearRequestError, showRequestError } from './request-feedback.js';
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -56,7 +50,6 @@ const GENERATION_RESOURCE_NAMES = {
 };
 
 let activePageRequest = null;
-let controlsInitialized = false;
 let discoveryRequestVersion = 0;
 let discoveryRenderedCount = 0;
 let discoveryResultLimit = DEFAULT_PAGE_SIZE;
@@ -112,16 +105,29 @@ async function performPageLoad(limit) {
     try {
       page = await getPokemonPage({ limit, offset: requestedOffset });
     } catch {
-      showRequestError({
-        messageKey: 'errors.pageLoad',
-        onRetry: () => loadNextPokemon({ limit }),
-      });
+      if (!hasDiscoveryCriteria()) {
+        showRequestError({
+          messageKey: 'errors.pageLoad',
+          onRetry: () => loadNextPokemon({ limit }),
+        });
+      }
       return [];
     }
 
+    if (hasDiscoveryCriteria()) {
+      const addedPokemon = addPokemonPage(page);
+      void preloadPokemonMedia(addedPokemon, { includeAnimation: false });
+      return addedPokemon;
+    }
+
     try {
-      await preloadPokemonMedia(page.pokemon);
-      return renderPokemonPage(page);
+      await preloadPokemonMedia(page.pokemon, { includeAnimation: false });
+      const addedPokemon = renderPokemonPage(page);
+      void preloadPokemonMedia(addedPokemon, {
+        concurrency: 3,
+        includeArtwork: false,
+      });
+      return addedPokemon;
     } catch {
       showRequestError({
         messageKey: 'errors.pageDisplay',
@@ -140,10 +146,7 @@ function renderPokemonPage(page) {
 
   const addedPokemon = addPokemonPage(page);
 
-  if (hasDiscoveryCriteria()) {
-    setFilterMessage('search.searching');
-    document.getElementById('pokemon-card').replaceChildren();
-  } else {
+  if (!hasDiscoveryCriteria()) {
     renderLoadedPokemon();
   }
 
@@ -189,82 +192,46 @@ function loadMorePokemon(limit = DEFAULT_PAGE_SIZE) {
   });
 }
 
-function getSelectedLoadAmount() {
-  const amount = Number(document.getElementById('amountSelect').value);
-
-  return Number.isInteger(amount) && amount > 0 ? amount : DEFAULT_PAGE_SIZE;
-}
-
 function updateLoadMoreButtonLabel() {
-  const loadMoreButton = document.getElementById('load-more-button');
-
-  if (hasDiscoveryCriteria()) {
-    const remainingCount = getDiscoveryRemainingCount();
-    loadMoreButton.textContent =
-      remainingCount > 0
-        ? t('list.loadMoreMatches', {
-            count: Math.min(getSelectedLoadAmount(), remainingCount),
-          })
-        : t('list.allMatchesLoaded');
-    return;
-  }
-
-  loadMoreButton.textContent = hasMorePokemon()
-    ? t('list.loadMore', { count: getSelectedLoadAmount() })
-    : t('list.allLoaded');
+  updatePokemonLoadMoreButtonLabel({
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+    hasMore: hasMorePokemon(),
+    isDiscovering: hasDiscoveryCriteria(),
+    remainingCount: getDiscoveryRemainingCount(),
+  });
 }
 
 function updateLoadMoreAvailability() {
   const isDiscovering = hasDiscoveryCriteria();
-  const isAvailable = isDiscovering ? getDiscoveryRemainingCount() > 0 : hasMorePokemon();
+  const remainingCount = getDiscoveryRemainingCount();
+  const hasMore = hasMorePokemon();
 
-  document.getElementById('load-more-controls').hidden =
-    isDiscovering && discoveryTotalMatches === 0;
-  document.getElementById('load-more-button').disabled = !isAvailable;
-  document.getElementById('amountSelect').disabled = !isAvailable;
-  updateLoadMoreButtonLabel();
-}
-
-function readListStateFromControls() {
-  return normalizePokemonListState({
-    generation: document.getElementById('generation-filter').value,
-    order: listState.order,
-    query: document.getElementById('Search_Pokemon').value,
-    sort: document.getElementById('sort-filter').value,
-    type: document.getElementById('type-filter').value,
+  updatePokemonLoadMoreControls({
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+    hasMore,
+    isAvailable: isDiscovering ? remainingCount > 0 : hasMore,
+    isDiscovering,
+    remainingCount,
+    totalMatches: discoveryTotalMatches,
   });
 }
 
-function syncListControls() {
-  const searchInput = document.getElementById('Search_Pokemon');
-  const resetButton = document.getElementById('Reset_Btn');
-  const orderButton = document.getElementById('sort-order-button');
-  const isDescending = listState.order === 'desc';
+function readListStateFromControls() {
+  return normalizePokemonListState(readPokemonListControls(listState.order));
+}
 
-  searchInput.value = listState.query;
-  document.getElementById('type-filter').value = listState.type;
-  document.getElementById('generation-filter').value = listState.generation;
-  document.getElementById('sort-filter').value = listState.sort;
-  resetButton.hidden = listState.query === '';
-  orderButton.setAttribute('aria-pressed', String(isDescending));
-  orderButton.setAttribute(
-    'aria-label',
-    isDescending ? t('search.sortDescending') : t('search.sortAscending'),
-  );
-  orderButton.querySelector('[aria-hidden]').textContent = isDescending ? '↓' : '↑';
-  orderButton.querySelector('.sort-order-label').textContent = isDescending
-    ? t('search.descending')
-    : t('search.ascending');
+function syncListControls() {
+  syncPokemonListControls(listState);
 }
 
 function setFilterMessage(key, parameters = {}) {
   filterStatus = { key, parameters };
-  document.getElementById('filterMessage').textContent = t(key, parameters);
+  renderPokemonFilterMessage(key, parameters);
 }
 
 function renderFilterMessage() {
   const { key, parameters } = filterStatus;
-  document.getElementById('filterMessage').textContent = t(key, parameters);
+  renderPokemonFilterMessage(key, parameters);
 }
 
 function getDiscoveryFilterIds(state) {
@@ -304,7 +271,10 @@ async function performDiscoverySearch(state, requestVersion) {
     });
     const matches = allMatches.slice(0, discoveryResultLimit);
     const pokemon = await getPokemonBatch(matches.map(getPokemonId));
-    await preloadPokemonMedia(pokemon);
+
+    if (requestVersion !== discoveryRequestVersion) return [];
+
+    await preloadPokemonMedia(pokemon, { includeAnimation: false });
 
     if (requestVersion !== discoveryRequestVersion) return [];
 
@@ -316,6 +286,10 @@ async function performDiscoverySearch(state, requestVersion) {
     discoveryRenderedCount = visiblePokemon.length;
     discoveryTotalMatches = allMatches.length;
     renderPokemonCards(visiblePokemon);
+    void preloadPokemonMedia(visiblePokemon, {
+      concurrency: 3,
+      includeArtwork: false,
+    });
     const status = getDiscoveryStatus(allMatches.length, visiblePokemon.length);
     setFilterMessage(status.key, status.parameters);
     return visiblePokemon;
@@ -413,80 +387,48 @@ function refreshPokemonListLanguage() {
 }
 
 function initPokemonListControls() {
-  if (controlsInitialized) return;
+  const didInitialize = initPokemonCatalogControls({
+    defaultPageSize: DEFAULT_PAGE_SIZE,
+    listState,
+    onAmountChange: updateLoadMoreButtonLabel,
+    onCriteriaChange: () => updateStateFromControls(),
+    onLanguageChanged: refreshPokemonListLanguage,
+    onLoadMore: loadMorePokemon,
+    onOrderToggle: () => {
+      listState = {
+        ...readListStateFromControls(),
+        order: listState.order === 'asc' ? 'desc' : 'asc',
+      };
+      void applyPokemonListState({ resetDiscoveryLimit: false });
+    },
+    onPopState: () => {
+      const nextListState = parsePokemonListState(window.location.search);
 
-  const searchForm = document.getElementById('pokemon-search-form');
-  const searchInput = document.getElementById('Search_Pokemon');
-  const amountSelect = document.getElementById('amountSelect');
+      if (arePokemonListStatesEqual(listState, nextListState)) return;
 
-  syncListControls();
-  searchInput.addEventListener('input', () =>
-    updateStateFromControls({ debounce: true }),
-  );
-  searchForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    updateStateFromControls();
+      listState = nextListState;
+      void applyPokemonListState({ updateUrl: false });
+    },
+    onQueryInput: () => updateStateFromControls({ debounce: true }),
+    onReset: resetFilter,
+    onSearchSubmit: () => updateStateFromControls(),
+    onSortChange: () => updateStateFromControls({ resetDiscoveryLimit: false }),
   });
-  document.getElementById('Reset_Btn').addEventListener('click', resetFilter);
-  document
-    .getElementById('type-filter')
-    .addEventListener('change', () => updateStateFromControls());
-  document
-    .getElementById('generation-filter')
-    .addEventListener('change', () => updateStateFromControls());
-  document
-    .getElementById('sort-filter')
-    .addEventListener('change', () =>
-      updateStateFromControls({ resetDiscoveryLimit: false }),
-    );
-  document.getElementById('sort-order-button').addEventListener('click', () => {
-    listState = {
-      ...readListStateFromControls(),
-      order: listState.order === 'asc' ? 'desc' : 'asc',
-    };
-    void applyPokemonListState({ resetDiscoveryLimit: false });
-  });
-  amountSelect.addEventListener('change', updateLoadMoreButtonLabel);
-  document
-    .getElementById('load-more-button')
-    .addEventListener('click', () => loadMorePokemon(getSelectedLoadAmount()));
-  window.addEventListener('popstate', () => {
-    const nextListState = parsePokemonListState(window.location.search);
 
-    if (arePokemonListStatesEqual(listState, nextListState)) return;
+  if (!didInitialize) return;
 
-    listState = nextListState;
-    void applyPokemonListState({ updateUrl: false });
-  });
-  onLanguageChange(refreshPokemonListLanguage);
-
-  controlsInitialized = true;
   updateLoadMoreButtonLabel();
 }
 
 function restorePokemonListFromUrl() {
   listState = parsePokemonListState(window.location.search);
+
+  if (!hasDiscoveryCriteria()) {
+    syncListControls();
+    return loadPokemonApi();
+  }
+
   return applyPokemonListState({ updateUrl: false });
 }
 
-function filterPokemon() {
-  return applyPokemonListState();
-}
-
-export {
-  checkIfType1Available,
-  filterPokemon,
-  getPokemonAnimation,
-  getPokemonImage,
-  getPokemonName,
-  getPokemonNumber,
-  getTypeColor,
-  getVisiblePokemonIds,
-  initPokemonCardInteractions,
-  initPokemonListControls,
-  loadPokemonApi,
-  resetFilter,
-  restorePokemonListFromUrl,
-  showGif,
-  showImg,
-};
+export { initPokemonListControls, resetFilter, restorePokemonListFromUrl };
