@@ -1,0 +1,88 @@
+/* Evolution */
+.pokemonEvolutionClass {
+  display: block;
+}
+
+.evolution-tree {
+  display: grid;
+  width: 100%;
+  justify-items: stretch;
+  gap: 10px;
+}
+
+.evolution-stage {
+  display: grid;
+  padding: 10px;
+  gap: 8px;
+  background: #f7f9fa;
+  border: 1px solid #e0e6ea;
+  border-radius: 14px;
+}
+
+.evolution-stage__label {
+  color: #a51f2c;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.evolution-stage__pokemon {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 8px;
+}
+
+.evolution-pokemon {
+  display: grid;
+  min-width: 0;
+  padding: 8px 4px;
+  place-items: center;
+  gap: 4px;
+  background: white;
+  border: 1px solid #e1e6ea;
+  border-radius: 12px;
+}
+
+.evolution-pokemon img {
+  width: 68px;
+  height: 68px;
+  object-fit: contain;
+}
+
+.evolution-pokemon strong {
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evolution-parent,
+.evolution-condition {
+  max-width: 100%;
+  color: #68737e;
+  font-size: 0.68rem;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.evolution-condition {
+  color: #263442;
+  font-weight: 700;
+}
+
+.evolutionArrow {
+  width: 22px;
+  height: 22px;
+  margin: 0 auto;
+  opacity: 0.58;
+  transform: rotate(90deg);
+}
+
+.evolution-note,
+.empty-state {
+  margin: 4px 0 0;
+  color: #59636e;
+  text-align: center;
+}

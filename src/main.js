@@ -1,6 +1,10 @@
 import './styles/fonts.css';
 import './styles/app.css';
 import './styles/pokemon-dialog.css';
+import './styles/pokemon-detail-content.css';
+import './styles/pokemon-evolution.css';
+import './styles/pokemon-matchups-cards.css';
+import './styles/pokemon-dialog-responsive.css';
 import './styles/collections.css';
 import './styles/responsive.css';
 

@@ -1,0 +1,152 @@
+@media (max-width: 560px) {
+  .detail-tabs {
+    display: flex;
+    padding: 8px 4px 0;
+    overflow-x: auto;
+    scroll-padding-inline: 8px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+  }
+
+  .detail-tab {
+    min-width: max-content;
+    padding: 14px 9px 12px;
+    font-size: 0.8rem;
+    scroll-snap-align: nearest;
+  }
+}
+
+@media (max-width: 480px) {
+  .pokemon-dialog {
+    width: calc(100vw - 12px);
+    height: calc(100dvh - 12px);
+    border-radius: 18px;
+  }
+
+  .OnePokemonCard {
+    grid-template-rows: minmax(250px, 42%) minmax(0, 1fr);
+  }
+
+  .detail-toolbar {
+    padding: 10px 12px 0;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    row-gap: 6px;
+  }
+
+  .detail-icon-button {
+    width: 38px;
+    height: 38px;
+  }
+
+  .detail-navigation {
+    grid-row: 1;
+    gap: 4px;
+  }
+
+  .detail-actions {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+
+  .detail-collection-button {
+    flex: 1 1 0;
+  }
+
+  .detail-close-button {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .detail-heading {
+    padding: 14px 16px 0;
+  }
+
+  .OnePokemonCard-Name {
+    font-size: 1.55rem;
+  }
+
+  .variety-picker select {
+    max-width: none;
+  }
+
+  .OnePokemonCard-Image {
+    bottom: 6px;
+    width: min(46vw, 160px);
+    height: min(42vw, 150px);
+  }
+
+  .OnePokemonCard-Image.is-animated {
+    width: 120px;
+    height: 120px;
+  }
+
+  .pokemon-sound-button {
+    right: 12px;
+    bottom: 12px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  .pokemon-sound-button span:last-child {
+    display: none;
+  }
+
+  .variety-picker {
+    padding: 7px 9px;
+    margin: 8px 10px 0;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .detail-content {
+    padding: 12px;
+  }
+
+  .about-list {
+    grid-template-columns: 1fr;
+  }
+
+  .about-list div {
+    min-height: 58px;
+  }
+
+  .about-list div:last-child:nth-child(odd) {
+    grid-column: auto;
+  }
+
+  .stat-row {
+    grid-template-columns: 54px 28px 1fr;
+    gap: 6px;
+  }
+
+  .tcg-intro {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tcg-intro a {
+    text-align: left;
+  }
+
+  .tcg-card-grid,
+  .tcg-skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .detail-icon-button,
+  .detail-tab::after {
+    transition: none;
+  }
+
+  .tcg-skeleton {
+    animation: none;
+  }
+}

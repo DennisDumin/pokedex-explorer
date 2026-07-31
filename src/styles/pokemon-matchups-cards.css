@@ -1,0 +1,195 @@
+/* Type matchups */
+.matchups-intro {
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  color: #263442;
+  background: #f3f5f7;
+  border-radius: 12px;
+}
+
+.matchups-intro p {
+  margin: 4px 0 0;
+  color: #59636e;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.matchup-list {
+  display: grid;
+  gap: 8px;
+}
+
+.matchup-group {
+  padding: 11px 12px 12px;
+  background: #f7f9fa;
+  border: 1px solid #e0e6ea;
+  border-radius: 13px;
+}
+
+.matchup-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.matchup-chip {
+  display: inline-flex;
+  padding: 6px 9px;
+  align-items: center;
+  gap: 7px;
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0.12);
+}
+
+.matchup-chip strong {
+  padding-left: 7px;
+  border-left: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+/* Trading cards */
+.tcg-results,
+.tcg-loading,
+.tcg-error,
+.tcg-empty {
+  display: grid;
+  gap: 14px;
+}
+
+.tcg-intro {
+  display: flex;
+  padding: 12px 14px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #f3f5f7;
+  border-radius: 12px;
+}
+
+.tcg-intro p,
+.tcg-loading p,
+.tcg-error p,
+.tcg-empty p {
+  margin: 4px 0 0;
+  color: #59636e;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.tcg-intro a,
+.tcg-empty a {
+  color: #a51f2c;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.tcg-card-grid,
+.tcg-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.tcg-card {
+  overflow: hidden;
+  background: #f3f5f7;
+  border: 1px solid #dfe4e8;
+  border-radius: 13px;
+}
+
+.tcg-card > a {
+  display: block;
+}
+
+.tcg-card img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  object-fit: contain;
+  background: #e8ecef;
+}
+
+.tcg-card__caption {
+  display: grid;
+  padding: 9px 10px 11px;
+  gap: 2px;
+}
+
+.tcg-card__caption strong,
+.tcg-card__caption span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tcg-card__caption span,
+.tcg-card__caption small {
+  color: #68737e;
+  font-size: 0.72rem;
+}
+
+.tcg-skeleton {
+  aspect-ratio: 245 / 342;
+  background: linear-gradient(100deg, #e5e9ed 20%, #f7f8f9 45%, #e5e9ed 70%);
+  background-size: 240% 100%;
+  border-radius: 13px;
+  animation: tcg-skeleton-loading 1.1s ease-in-out infinite;
+}
+
+.tcg-error,
+.tcg-empty {
+  padding: 18px;
+  justify-items: center;
+  text-align: center;
+  background: #f3f5f7;
+  border-radius: 13px;
+}
+
+.tcg-error button {
+  min-height: 40px;
+  padding: 8px 14px;
+  color: white;
+  font: inherit;
+  font-weight: 800;
+  background: #c02533;
+  border: 0;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+@keyframes tcg-skeleton-loading {
+  to {
+    background-position-x: -240%;
+  }
+}
+
+.detail-icon-button:focus-visible,
+.pokemon-sound-button:focus-visible,
+.detail-tab:focus-visible,
+.ability-card summary:focus-visible,
+.tcg-card a:focus-visible,
+.tcg-intro a:focus-visible,
+.tcg-empty a:focus-visible,
+.tcg-error button:focus-visible {
+  outline: 3px solid white;
+  outline-offset: 3px;
+}
+
+.detail-tab:focus-visible,
+.ability-card summary:focus-visible,
+.tcg-card a:focus-visible,
+.tcg-intro a:focus-visible,
+.tcg-empty a:focus-visible,
+.tcg-error button:focus-visible {
+  outline-color: #c02533;
+}
+
+.detail-tab:focus-visible,
+.ability-card summary:focus-visible {
+  outline-offset: -3px;
+}
