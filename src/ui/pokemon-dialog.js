@@ -1,11 +1,9 @@
 import {
-  getPokemonImage,
   getPokemonName,
   getPokemonNumber,
   getTypeColor,
   getVisiblePokemonIds,
 } from './pokemon-catalog.js';
-import pokemonFallbackUrl from '../../img/pokeball-icon.svg';
 import { getPokemonDetails } from '../api/pokemon-details.js';
 import { getResourceId } from '../api/pokemon-api.js';
 import { getPokemonCards } from '../api/tcg-api.js';
@@ -23,12 +21,14 @@ import {
   updatePokemonDetailRoute,
 } from '../utils/detail-route.js';
 import { preloadMediaUrls, preloadPokemonMedia } from '../utils/media.js';
-import { prefersReducedMotion } from '../utils/motion.js';
-import {
-  getPokemonAnimation as selectPokemonAnimation,
-  getPokemonArtwork,
-} from '../utils/pokemon-media.js';
 import { cardHTML } from './pokemon-dialog-template.js';
+import {
+  getPokemonCry,
+  getPokemonDialogMedia,
+  hasShinyMedia,
+  playPokemonCry,
+  stopPokemonCry,
+} from './pokemon-dialog-media.js';
 import {
   generateAboutHTML,
   generateBaseStatsHTML,
@@ -39,7 +39,6 @@ import {
   generateTypeMatchupsHTML,
 } from './pokemon-detail-tabs.js';
 
-const POKEMON_CRY_VOLUME = 0.12;
 const MENU_POINT_BY_ROUTE_TAB = Object.freeze({
   about: 1,
   cards: 5,
@@ -63,7 +62,6 @@ let activePokemonDetails = null;
 let activeTradingCardsResult = null;
 let activeMenuPoint = 1;
 let activeShiny = false;
-let activeCry = null;
 let dialogInitialized = false;
 let finishActiveDetailRequest = null;
 let lastFocusedElement = null;
@@ -75,13 +73,6 @@ function getMenuPointFromRouteTab(tab) {
 
 function getRouteTabFromMenuPoint(menuPoint) {
   return ROUTE_TAB_BY_MENU_POINT[menuPoint] ?? 'about';
-}
-
-function hasShinyMedia(pokemon) {
-  return Boolean(
-    selectPokemonAnimation(pokemon, { shiny: true }) ||
-    getPokemonArtwork(pokemon, { shiny: true }),
-  );
 }
 
 function syncDetailRoute({ historyMode, wasOpen }) {
@@ -198,10 +189,6 @@ function getAdjacentPokemonIds(pokemonId) {
   };
 }
 
-function getPokemonCry(pokemon) {
-  return pokemon?.cries?.latest ?? pokemon?.cries?.legacy ?? null;
-}
-
 function getPokemonVarieties(species) {
   if (!Array.isArray(species?.varieties)) return [];
 
@@ -222,22 +209,6 @@ function getPokemonVarieties(species) {
     .filter(Boolean);
 }
 
-function getDetailMedia(currentPokemon) {
-  const animatedImage = prefersReducedMotion()
-    ? null
-    : selectPokemonAnimation(currentPokemon, {
-        shiny: activeShiny,
-      });
-  const artwork = getPokemonArtwork(currentPokemon, { shiny: activeShiny });
-
-  return {
-    fallbackImage: artwork ?? getPokemonImage(currentPokemon, { shiny: activeShiny }),
-    finalFallbackImage: pokemonFallbackUrl,
-    image: animatedImage ?? artwork ?? getPokemonImage(currentPokemon),
-    imageIsAnimated: Boolean(animatedImage),
-  };
-}
-
 function generateCardHTML(details) {
   const currentPokemon = details.pokemon;
   const name = getPokemonName(currentPokemon);
@@ -246,7 +217,7 @@ function generateCardHTML(details) {
     .filter(Boolean);
   const primaryType = types[0] ?? 'normal';
   const secondaryType = types[1] ?? null;
-  const media = getDetailMedia(currentPokemon);
+  const media = getPokemonDialogMedia(currentPokemon, { shiny: activeShiny });
   const navigation = getAdjacentPokemonIds(currentPokemon.id);
 
   document.getElementById('show-big-card').innerHTML = cardHTML({
@@ -320,7 +291,7 @@ function updateDetailShinyView() {
 
   if (!pokemon || !image || !button) return;
 
-  const media = getDetailMedia(pokemon);
+  const media = getPokemonDialogMedia(pokemon, { shiny: activeShiny });
   const name = getPokemonName(pokemon);
   image.dataset.imageFallback = media.fallbackImage;
   image.dataset.imageFinalFallback = media.finalFallbackImage;
@@ -476,32 +447,6 @@ function renderMenuPointContent(
   }
 }
 
-function stopPokemonCry() {
-  activeCry?.pause();
-  activeCry = null;
-}
-
-function playPokemonCry(pokemon = activePokemonDetails?.pokemon) {
-  const cry = getPokemonCry(pokemon);
-
-  stopPokemonCry();
-  if (!cry) return;
-
-  const audio = new Audio(cry);
-  activeCry = audio;
-  audio.volume = POKEMON_CRY_VOLUME;
-  audio.addEventListener(
-    'ended',
-    () => {
-      if (activeCry === audio) activeCry = null;
-    },
-    { once: true },
-  );
-  audio.play().catch(() => {
-    if (activeCry === audio) activeCry = null;
-  });
-}
-
 function closePokemonDialog({ updateRoute = true } = {}) {
   const dialog = document.getElementById('pokemon-dialog');
 
@@ -559,7 +504,7 @@ function handleDetailClick(event) {
     const action = actionButton.dataset.action;
 
     if (action === 'close') closePokemonDialog();
-    if (action === 'play-cry') playPokemonCry();
+    if (action === 'play-cry') playPokemonCry(activePokemonDetails?.pokemon);
     if (action === 'retry-tcg') {
       renderMenuPointContent(5, activePokemonId, detailRequestVersion);
     }
