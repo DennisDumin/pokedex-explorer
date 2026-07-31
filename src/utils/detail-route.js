@@ -128,7 +128,7 @@ function openPokemonDetailRoute(
   const normalizedPokemonId = normalizePokemonId(pokemonId);
 
   if (normalizedPokemonId === null) {
-    throw new TypeError('PokÃ©mon ID must be a positive integer.');
+    throw new TypeError('Pokémon ID must be a positive integer.');
   }
 
   const url = getWindowUrl();
@@ -150,7 +150,7 @@ function updatePokemonDetailRoute(updates = {}, { replace = true } = {}) {
       : normalizePokemonId(updates.pokemonId);
 
   if (pokemonId === null) {
-    throw new TypeError('PokÃ©mon ID must be a positive integer.');
+    throw new TypeError('Pokémon ID must be a positive integer.');
   }
 
   applyDetailRoute(url, {

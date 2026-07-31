@@ -12,7 +12,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('PokÃ©mon list URL state', () => {
+describe('Pokémon list URL state', () => {
   it('uses defaults for missing or unsupported URL values', () => {
     const state = parsePokemonListState(
       '?type=unknown&generation=42&sort=weight&order=sideways',

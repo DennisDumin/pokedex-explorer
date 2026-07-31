@@ -108,7 +108,9 @@ describe('Pokemon detail history', () => {
   it('rejects invalid Pokemon IDs before changing history', () => {
     const { pushState, replaceState } = stubWindow('https://example.com/pokedex/');
 
-    expect(() => openPokemonDetailRoute(0)).toThrow(TypeError);
+    expect(() => openPokemonDetailRoute(0)).toThrow(
+      'Pokémon ID must be a positive integer.',
+    );
     expect(pushState).not.toHaveBeenCalled();
     expect(replaceState).not.toHaveBeenCalled();
   });
@@ -128,6 +130,16 @@ describe('Pokemon detail history', () => {
     expect(relativeUrl).toBe('/pokedex/?q=pika&pokemon=25');
     expect(replaceState).toHaveBeenCalledWith(historyState, '', relativeUrl);
     expect(pushState).not.toHaveBeenCalled();
+  });
+
+  it('rejects an update without a valid Pokemon ID', () => {
+    const { pushState, replaceState } = stubWindow('https://example.com/pokedex/');
+
+    expect(() => updatePokemonDetailRoute({ pokemonId: 'invalid' })).toThrow(
+      'Pokémon ID must be a positive integer.',
+    );
+    expect(pushState).not.toHaveBeenCalled();
+    expect(replaceState).not.toHaveBeenCalled();
   });
 
   it('marks an explicitly pushed update as a detail entry', () => {
