@@ -4,9 +4,10 @@ import { onLanguageChange, t } from '../i18n/index.js';
 import { collectionStore } from '../state/collections.js';
 import { comparisonSelectionStore } from '../state/comparison-selection.js';
 import { cachePokemon } from '../state/pokemon-store.js';
+import { escapeHtml } from '../utils/html.js';
 import { preloadPokemonMedia } from '../utils/media.js';
 import { togglePokemonComparison } from './comparison.js';
-import { getPokemonImage, getPokemonName, getPokemonNumber } from './pokemon-catalog.js';
+import { getPokemonImage, getPokemonName, getPokemonNumber } from './pokemon-card.js';
 import { renderOneCard } from './pokemon-dialog.js';
 import { beginRequest, clearRequestError, showRequestError } from './request-feedback.js';
 import { acquireScrollLock } from './scroll-lock.js';
@@ -26,15 +27,6 @@ let collectionRequestVersion = 0;
 let collectionTrigger = null;
 let pendingCollectionFocusId;
 let releaseCollectionScrollLock = null;
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
 
 function getCollectionDialog() {
   return document.getElementById('collection-dialog');
@@ -260,7 +252,10 @@ async function renderCollectionTab() {
 
   try {
     const pokemon = await getPokemonBatch(ids);
-    await preloadPokemonMedia(pokemon);
+
+    if (requestVersion !== collectionRequestVersion) return [];
+
+    await preloadPokemonMedia(pokemon, { includeAnimation: false });
 
     if (requestVersion !== collectionRequestVersion) return [];
 

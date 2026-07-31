@@ -3,10 +3,9 @@ import {
   getPokemonNumber,
   getTypeColor,
   getVisiblePokemonIds,
-} from './pokemon-catalog.js';
+} from './pokemon-card.js';
 import { getPokemonDetails } from '../api/pokemon-details.js';
 import { getResourceId } from '../api/pokemon-api.js';
-import { getPokemonCards } from '../api/tcg-api.js';
 import { onLanguageChange, t, translateType } from '../i18n/index.js';
 import { collectionStore } from '../state/collections.js';
 import { comparisonSelectionStore } from '../state/comparison-selection.js';
@@ -20,7 +19,7 @@ import {
   removePokemonDetailRoute,
   updatePokemonDetailRoute,
 } from '../utils/detail-route.js';
-import { preloadMediaUrls, preloadPokemonMedia } from '../utils/media.js';
+import { preloadPokemonMedia } from '../utils/media.js';
 import { cardHTML } from './pokemon-dialog-template.js';
 import {
   getPokemonCry,
@@ -33,11 +32,9 @@ import {
   generateAboutHTML,
   generateBaseStatsHTML,
   generateEvolutionHTML,
-  generateTradingCardsErrorHTML,
-  generateTradingCardsHTML,
-  generateTradingCardsLoadingHTML,
   generateTypeMatchupsHTML,
 } from './pokemon-detail-tabs.js';
+import { pokemonTradingCardsController } from './pokemon-trading-cards-controller.js';
 
 const MENU_POINT_BY_ROUTE_TAB = Object.freeze({
   about: 1,
@@ -59,7 +56,6 @@ let detailRequestVersion = 0;
 let menuRequestVersion = 0;
 let activePokemonId = null;
 let activePokemonDetails = null;
-let activeTradingCardsResult = null;
 let activeMenuPoint = 1;
 let activeShiny = false;
 let dialogInitialized = false;
@@ -109,7 +105,7 @@ async function renderOneCard(
   menuRequestVersion += 1;
   activePokemonId = normalizedPokemonId;
   activePokemonDetails = null;
-  activeTradingCardsResult = null;
+  pokemonTradingCardsController.reset();
   clearRequestError();
   stopPokemonCry();
 
@@ -124,9 +120,12 @@ async function renderOneCard(
 
   try {
     const details = await getPokemonDetails(normalizedPokemonId);
+    const otherEvolutionPokemon = details.evolution.pokemon.filter(
+      (pokemon) => pokemon.id !== normalizedPokemonId,
+    );
     await Promise.all([
       preloadPokemonMedia([details.pokemon], { includeShiny: true }),
-      preloadPokemonMedia(details.evolution.pokemon),
+      preloadPokemonMedia(otherEvolutionPokemon, { includeAnimation: false }),
     ]);
 
     if (requestVersion !== detailRequestVersion) return;
@@ -367,23 +366,6 @@ function changeMenuPoint(selectedMenuPoint) {
   });
 }
 
-async function loadTradingCards(details, isCurrentRequest) {
-  try {
-    const pokemonId = details.species?.id ?? details.pokemon.id;
-    const result = await getPokemonCards(pokemonId);
-    await preloadMediaUrls(
-      result.cards.map((card) => card.images.small ?? card.images.large),
-      { concurrency: 4 },
-    );
-
-    if (!isCurrentRequest()) return;
-    activeTradingCardsResult = result;
-    generateTradingCardsHTML(result);
-  } catch {
-    if (isCurrentRequest()) generateTradingCardsErrorHTML();
-  }
-}
-
 function renderMenuPointContent(
   menuPoint,
   pokemonId = activePokemonId,
@@ -422,8 +404,11 @@ function renderMenuPointContent(
       if (!isCurrentRequest()) return;
       content.classList.add('pokemonEvolutionClass');
     } else if (menuPoint === 5) {
-      generateTradingCardsLoadingHTML();
-      void loadTradingCards(details, isCurrentRequest);
+      void pokemonTradingCardsController.render({
+        details,
+        isCurrentRequest,
+        onRetry: () => renderMenuPointContent(5, activePokemonId, detailRequestVersion),
+      });
     }
 
     if (!isCurrentRequest()) return;
@@ -467,7 +452,7 @@ function closePokemonDialog({ updateRoute = true } = {}) {
 
   activePokemonId = null;
   activePokemonDetails = null;
-  activeTradingCardsResult = null;
+  pokemonTradingCardsController.reset();
   activeMenuPoint = 1;
   activeShiny = false;
   document.getElementById('show-big-card').replaceChildren();
@@ -484,7 +469,7 @@ function handleDialogClosed() {
   releaseDetailScrollLock = null;
   activePokemonId = null;
   activePokemonDetails = null;
-  activeTradingCardsResult = null;
+  pokemonTradingCardsController.reset();
   activeMenuPoint = 1;
   activeShiny = false;
   stopPokemonCry();
@@ -505,9 +490,7 @@ function handleDetailClick(event) {
 
     if (action === 'close') closePokemonDialog();
     if (action === 'play-cry') playPokemonCry(activePokemonDetails?.pokemon);
-    if (action === 'retry-tcg') {
-      renderMenuPointContent(5, activePokemonId, detailRequestVersion);
-    }
+    if (pokemonTradingCardsController.handleAction(action)) return;
     if (action === 'toggle-shiny') toggleActivePokemonShiny();
     if (action === 'toggle-favorite') toggleActivePokemonFavorite();
     if (action === 'toggle-compare') toggleActivePokemonComparison(actionButton);
@@ -611,11 +594,7 @@ function refreshActiveDetailLanguage() {
 
   if (activeMenuPoint === 5) {
     changeMenuPoint(5);
-    if (activeTradingCardsResult) {
-      generateTradingCardsHTML(activeTradingCardsResult);
-    } else {
-      generateTradingCardsLoadingHTML();
-    }
+    pokemonTradingCardsController.refreshLanguage();
   } else {
     renderMenuPointContent(activeMenuPoint);
   }

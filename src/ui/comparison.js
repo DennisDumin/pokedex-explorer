@@ -1,12 +1,18 @@
 import pokemonFallbackUrl from '../../img/pokeball-icon.svg';
 import { getPokemonBatch } from '../api/pokemon-api.js';
-import { getLanguage, onLanguageChange, t } from '../i18n/index.js';
+import { getLanguage, onLanguageChange, t, translateType } from '../i18n/index.js';
 import { comparisonSelectionStore } from '../state/comparison-selection.js';
 import { cachePokemon, getPokemonById } from '../state/pokemon-store.js';
 import { comparePokemonStats } from '../utils/comparison.js';
 import { formatPokemonName, normalizeBaseStat } from '../utils/formatters.js';
+import { escapeHtml } from '../utils/html.js';
 import { preloadPokemonMedia } from '../utils/media.js';
-import { getPokemonImage, getPokemonName, getPokemonNumber } from './pokemon-catalog.js';
+import {
+  getPokemonImage,
+  getPokemonName,
+  getPokemonNumber,
+  getTypeColor,
+} from './pokemon-card.js';
 import { beginRequest, clearRequestError, showRequestError } from './request-feedback.js';
 import { acquireScrollLock } from './scroll-lock.js';
 
@@ -24,15 +30,6 @@ const COMPARISON_STAT_KEYS = Object.freeze({
   'special-defense': 'stats.specialDefense',
   speed: 'stats.speed',
 });
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
 
 function getComparisonDialog() {
   return document.getElementById('comparison-dialog');
@@ -92,29 +89,57 @@ function generateComparisonStatRow(stat) {
   `;
 }
 
+function getComparisonPokemonTypes(pokemon) {
+  return (pokemon?.types ?? [])
+    .map((entry) => entry?.type?.name)
+    .filter(Boolean)
+    .slice(0, 2);
+}
+
+function generateComparisonPokemonMarkup(pokemon) {
+  const name = getPokemonName(pokemon);
+  const types = getComparisonPokemonTypes(pokemon);
+  const primaryType = types[0] ?? 'normal';
+  const secondaryType = types[1] ?? null;
+
+  return /* html */ `
+    <article class="comparison-pokemon-card" ${getTypeColor(primaryType, secondaryType)}>
+      <img
+        src="${getPokemonImage(pokemon)}"
+        data-image-fallback="${pokemonFallbackUrl}"
+        alt="${escapeHtml(name)}"
+      >
+      <strong>${escapeHtml(name)}</strong>
+      <span class="comparison-pokemon-number">${getPokemonNumber(pokemon)}</span>
+      <span class="comparison-pokemon-types" aria-label="${escapeHtml(t('detail.types'))}">
+        ${types
+          .map(
+            (type) =>
+              `<span class="type" ${getTypeColor(type)}>${escapeHtml(translateType(type))}</span>`,
+          )
+          .join('')}
+      </span>
+    </article>
+  `;
+}
+
 function renderComparison(leftPokemon, rightPokemon) {
   const comparison = comparePokemonStats(leftPokemon, rightPokemon);
   const winnerText = getComparisonWinnerText(comparison, leftPokemon, rightPokemon);
+  const comparisonContent = document.getElementById('comparison-content');
 
-  document.getElementById('comparison-content').innerHTML = /* html */ `
+  comparisonContent.innerHTML = /* html */ `
     <div class="comparison-pokemon">
-      <article>
-        <img src="${getPokemonImage(leftPokemon)}" data-image-fallback="${pokemonFallbackUrl}" alt="${escapeHtml(getPokemonName(leftPokemon))}">
-        <strong>${escapeHtml(getPokemonName(leftPokemon))}</strong>
-        <span>${getPokemonNumber(leftPokemon)}</span>
-      </article>
+      ${generateComparisonPokemonMarkup(leftPokemon)}
       <span class="comparison-versus" aria-hidden="true">VS</span>
-      <article>
-        <img src="${getPokemonImage(rightPokemon)}" data-image-fallback="${pokemonFallbackUrl}" alt="${escapeHtml(getPokemonName(rightPokemon))}">
-        <strong>${escapeHtml(getPokemonName(rightPokemon))}</strong>
-        <span>${getPokemonNumber(rightPokemon)}</span>
-      </article>
+      ${generateComparisonPokemonMarkup(rightPokemon)}
     </div>
     <p class="comparison-result">${escapeHtml(winnerText)}</p>
     <div class="comparison-stats">
       ${comparison.stats.map(generateComparisonStatRow).join('')}
     </div>
   `;
+  comparisonContent.scrollTop = 0;
 }
 
 function isSameSelection(expectedIds) {
@@ -137,7 +162,12 @@ async function openSelectedComparison(triggerElement = comparisonTrigger) {
 
   try {
     const pokemon = await getPokemonBatch(selectedIds);
-    await preloadPokemonMedia(pokemon);
+
+    if (requestVersion !== comparisonRequestVersion || !isSameSelection(selectedIds)) {
+      return;
+    }
+
+    await preloadPokemonMedia(pokemon, { includeAnimation: false });
 
     if (requestVersion !== comparisonRequestVersion || !isSameSelection(selectedIds)) {
       return;
@@ -235,4 +265,9 @@ function initComparisonUi() {
   comparisonInitialized = true;
 }
 
-export { initComparisonUi, togglePokemonComparison };
+export {
+  generateComparisonPokemonMarkup,
+  initComparisonUi,
+  renderComparison,
+  togglePokemonComparison,
+};

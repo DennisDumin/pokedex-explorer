@@ -10,9 +10,10 @@ import {
   getStatColor,
   normalizeBaseStat,
 } from '../utils/formatters.js';
+import { escapeHtml } from '../utils/html.js';
 import { getSpeciesSummary } from '../utils/species.js';
 import { calculateTypeMatchups } from '../utils/type-matchups.js';
-import { getPokemonImage, getPokemonName, getTypeColor } from './pokemon-catalog.js';
+import { getPokemonImage, getPokemonName, getTypeColor } from './pokemon-card.js';
 
 const GENERATION_KEYS = Object.freeze({
   i: '1',
@@ -25,15 +26,6 @@ const GENERATION_KEYS = Object.freeze({
   viii: '8',
   ix: '9',
 });
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
 
 function getTranslatedValue(key, fallback) {
   const translatedValue = t(key);
@@ -362,6 +354,15 @@ function generateTradingCardsLoadingHTML() {
   `;
 }
 
+function setTradingCardsLoadMorePending(isPending) {
+  const button = document.querySelector('[data-action="load-more-tcg"]');
+  if (!button) return;
+
+  button.disabled = isPending;
+  button.setAttribute('aria-disabled', String(isPending));
+  button.textContent = isPending ? t('tcg.loadingMore') : button.dataset.idleLabel;
+}
+
 function generateTradingCardMarkup(card) {
   const image = card.images.small ?? card.images.large ?? pokemonFallbackUrl;
   const largeImage = card.images.large;
@@ -395,7 +396,10 @@ function generateTradingCardMarkup(card) {
   `;
 }
 
-function generateTradingCardsHTML({ cards, totalCount }) {
+function generateTradingCardsHTML(
+  { cards, totalCount, isLoadingMore = false, loadMoreCount = 0, loadMoreFailed = false },
+  { restoreLoadMoreFocus = false } = {},
+) {
   const contentContainer = document.getElementById('content');
 
   if (!Array.isArray(cards) || cards.length === 0) {
@@ -416,21 +420,62 @@ function generateTradingCardsHTML({ cards, totalCount }) {
       : t(cards.length === 1 ? 'tcg.foundOne' : 'tcg.foundMany', {
           count: cards.length,
         });
+  const loadMoreMarkup =
+    loadMoreCount > 0
+      ? /* html */ `
+        <div class="tcg-load-more">
+          ${
+            loadMoreFailed
+              ? `<p class="tcg-load-more__error" role="alert">${escapeHtml(t('tcg.loadMoreFailed'))}</p>`
+              : ''
+          }
+          <button
+            type="button"
+            data-action="load-more-tcg"
+            data-idle-label="${escapeHtml(t('tcg.loadMore', { count: loadMoreCount }))}"
+            aria-controls="tcg-card-grid"
+            ${isLoadingMore ? 'disabled aria-disabled="true"' : ''}
+          >
+            ${escapeHtml(
+              isLoadingMore
+                ? t('tcg.loadingMore')
+                : t('tcg.loadMore', { count: loadMoreCount }),
+            )}
+          </button>
+        </div>
+      `
+      : '';
 
   contentContainer.innerHTML = /* html */ `
-    <section class="tcg-results" aria-labelledby="tcg-results-heading">
+    <section
+      class="tcg-results"
+      aria-labelledby="tcg-results-heading"
+      aria-busy="${isLoadingMore}"
+    >
       <div class="tcg-intro">
         <div>
           <strong id="tcg-results-heading">${escapeHtml(t('tcg.title'))}</strong>
-          <p>${escapeHtml(resultSummary)}</p>
+          <p id="tcg-result-status" role="status" aria-live="polite" aria-atomic="true">
+            ${escapeHtml(resultSummary)}
+          </p>
         </div>
         <a href="https://pokemontcg.io" target="_blank" rel="noreferrer">
           Pokémon TCG API
         </a>
       </div>
-      <div class="tcg-card-grid">${cards.map(generateTradingCardMarkup).join('')}</div>
+      <div id="tcg-card-grid" class="tcg-card-grid">${cards.map(generateTradingCardMarkup).join('')}</div>
+      ${loadMoreMarkup}
     </section>
   `;
+
+  if (restoreLoadMoreFocus) {
+    const focusTarget =
+      document.querySelector('[data-action="load-more-tcg"]') ??
+      document.getElementById('tcg-result-status');
+
+    if (focusTarget?.id === 'tcg-result-status') focusTarget.tabIndex = -1;
+    focusTarget?.focus({ preventScroll: true });
+  }
 }
 
 function generateTradingCardsErrorHTML() {
@@ -452,5 +497,6 @@ export {
   generateTradingCardsErrorHTML,
   generateTradingCardsHTML,
   generateTradingCardsLoadingHTML,
+  setTradingCardsLoadMorePending,
   generateTypeMatchupsHTML,
 };

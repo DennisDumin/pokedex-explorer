@@ -43,11 +43,6 @@ function getLoadedPokemon() {
   return pokemonOrder.map((id) => pokemonById.get(id));
 }
 
-function getLoadedPokemonAt(index) {
-  const id = pokemonOrder[index];
-  return id === undefined ? null : pokemonById.get(id);
-}
-
 function getPokemonById(id) {
   const pokemonId = Number(id);
 
@@ -66,7 +61,6 @@ export {
   addPokemonPage,
   cachePokemon,
   getLoadedPokemon,
-  getLoadedPokemonAt,
   getNextPokemonOffset,
   getPokemonById,
   hasMorePokemon,
