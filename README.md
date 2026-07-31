@@ -1,11 +1,11 @@
 # Pokédex Explorer
 
-A portfolio-focused Pokédex built with Vanilla JavaScript, ES modules, Vite, and
+A modern Pokédex built with Vanilla JavaScript, ES modules, Vite, and
 two public Pokémon APIs. It combines fast catalog discovery with accessible
 details, collection tools, shareable URLs, and installable PWA support without a
 frontend framework.
 
-> **Live demo:** Add the deployed project URL here.
+> **Live demo:** [dennis-dumin.net/pokedex](https://www.dennis-dumin.net/pokedex/)
 
 ## Highlights
 
@@ -166,20 +166,20 @@ npm run build
 npm run preview
 ```
 
-Deploy the generated `dist/` directory to a static host such as GitHub Pages,
-Netlify, Cloudflare Pages, or Vercel. The Vite configuration uses relative asset
-paths, so the build can also run below a repository subpath. Use the following
-generic host settings:
+The live version is hosted as a static application at
+`https://www.dennis-dumin.net/pokedex/`. The Vite configuration uses relative
+asset paths so the build works inside this subdirectory.
 
-- Build command: `npm run build`
-- Publish directory: `dist`
+For an ALL-INKL deployment with FileZilla:
 
-For GitHub Pages, a manually triggered workflow is included at
-`.github/workflows/deploy-pages.yml`. After pushing the repository, select
-**GitHub Actions** as the Pages source and run **Deploy Pokédex to GitHub Pages**
-from the Actions tab. The workflow never deploys automatically on a normal push.
+1. Run `npm run build`.
+2. Open the domain's web root on the server.
+3. Create or open the `pokedex` directory.
+4. Upload the **contents** of the local `dist/` directory into `pokedex/`.
 
-After deployment, replace the live-demo placeholder at the top of this README.
+Do not upload the source project or add another `dist` directory level. The
+deployed `index.html` must therefore be available directly at
+`/pokedex/index.html`.
 
 ## Data, Assets, and Disclaimer
 
@@ -193,15 +193,16 @@ Trading-card data and images are retrieved from the
 without an API key and therefore keeps requests limited, lazy, cached, and
 retryable.
 
-This is an unofficial fan project created for educational and portfolio purposes.
+This is an unofficial fan project.
 It is not affiliated with or endorsed by Nintendo, Game Freak, Creatures Inc., or
 The Pokémon Company. Pokémon names, characters, trading cards, and related assets
 belong to their respective rights holders.
 
-The local files in `img/` and `fonts/` came from the pre-existing educational
-project. Their individual sources and licenses are not documented in this
-repository, so this project does not grant permission to reuse them. Verify or
-replace those assets before commercial redistribution.
+The background was generated specifically for this project. Remaining local
+interface graphics came from the original project version and are used only as
+part of this unofficial fan project. The bundled Lato font is licensed under the
+SIL Open Font License 1.1; its copyright notice and license are included in
+[`fonts/OFL.txt`](fonts/OFL.txt).
 
 ## License
 

@@ -2,6 +2,7 @@
   "name": "pokedex-explorer",
   "private": true,
   "version": "1.0.0",
+  "description": "A bilingual, accessible Pokédex built with Vanilla JavaScript and Vite.",
   "type": "module",
   "scripts": {
     "dev": "vite",
