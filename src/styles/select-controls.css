@@ -1,0 +1,123 @@
+/* Select controls */
+
+select.pokedex-select {
+  padding-inline-end: 40px;
+  box-sizing: border-box;
+  color: #18212b;
+  background-color: #f8fafc;
+  border: 1px solid rgba(24, 33, 43, 0.18);
+  border-radius: 11px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 12px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  select.pokedex-select:hover:not(:disabled) {
+    background-color: #f1f8f2;
+    border-color: #2e7d32;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.95),
+      0 0 0 3px rgba(46, 125, 50, 0.24),
+      0 7px 18px rgba(15, 23, 42, 0.2);
+  }
+}
+
+select.pokedex-select:focus-visible {
+  border-color: #2e7d32;
+  outline: 3px solid rgba(46, 125, 50, 0.3);
+  outline-offset: 2px;
+}
+
+select.pokedex-select:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+@supports (appearance: base-select) {
+  @media (hover: hover) and (pointer: fine) {
+    select.pokedex-select,
+    select.pokedex-select::picker(select) {
+      appearance: base-select;
+    }
+
+    select.pokedex-select {
+      align-items: center;
+    }
+
+    select.pokedex-select::picker-icon {
+      display: block;
+      width: 8px;
+      height: 8px;
+      margin: 0 3px 4px 8px;
+      content: '';
+      border-right: 2px solid #64748b;
+      border-bottom: 2px solid #64748b;
+      transform: rotate(45deg);
+      transition:
+        border-color 160ms ease,
+        transform 160ms ease;
+    }
+
+    select.pokedex-select:open::picker-icon {
+      margin-block: 4px 0;
+      transform: rotate(225deg);
+    }
+
+    select.pokedex-select:hover:not(:disabled)::picker-icon,
+    select.pokedex-select:focus-visible::picker-icon {
+      border-color: #2e7d32;
+    }
+
+    select.pokedex-select::picker(select) {
+      max-block-size: min(20rem, calc(100dvh - 2rem));
+      padding: 6px;
+      margin-block: 6px;
+      overflow-y: auto;
+      color: white;
+      background: #111d2e;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 14px;
+      box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
+      overscroll-behavior: contain;
+      scrollbar-color: #64748b #111d2e;
+    }
+
+    select.pokedex-select option {
+      min-height: 40px;
+      padding: 9px 12px;
+      color: rgba(255, 255, 255, 0.9);
+      background: transparent;
+      border-radius: 8px;
+    }
+
+    select.pokedex-select option:hover,
+    select.pokedex-select option:focus {
+      color: white;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    select.pokedex-select option:checked {
+      color: white;
+      font-weight: 800;
+      background: #2e7d32;
+    }
+
+    select.pokedex-select option::checkmark {
+      color: white;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  select.pokedex-select,
+  select.pokedex-select::picker-icon {
+    transition: none;
+  }
+}

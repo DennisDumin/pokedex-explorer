@@ -29,8 +29,7 @@
 }
 
 .pokemon-dialog::backdrop {
-  background: rgba(7, 12, 22, 0.74);
-  backdrop-filter: blur(3px);
+  background: rgba(7, 12, 22, 0.82);
 }
 
 #show-big-card,

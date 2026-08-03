@@ -94,7 +94,7 @@
           >
             <label>
               <span data-i18n="search.type">Type</span>
-              <select id="type-filter">
+              <select id="type-filter" class="pokedex-select">
                 <option value="all" data-i18n="common.all">All</option>
                 <option value="normal" data-i18n="type.normal">Normal</option>
                 <option value="fire" data-i18n="type.fire">Fire</option>
@@ -119,7 +119,7 @@
 
             <label>
               <span data-i18n="search.generation">Generation</span>
-              <select id="generation-filter">
+              <select id="generation-filter" class="pokedex-select">
                 <option value="all" data-i18n="common.all">All</option>
                 <option value="1" data-i18n="generation.1">Generation I</option>
                 <option value="2" data-i18n="generation.2">Generation II</option>
@@ -135,7 +135,7 @@
 
             <label>
               <span data-i18n="search.sortBy">Sort by</span>
-              <select id="sort-filter">
+              <select id="sort-filter" class="pokedex-select">
                 <option value="id" data-i18n="search.number">Number</option>
                 <option value="name" data-i18n="search.name">Name</option>
               </select>
@@ -159,7 +159,7 @@
         <div class="app-actions">
           <label class="language-switcher" for="language-select">
             <span data-i18n="language.label">Language</span>
-            <select id="language-select">
+            <select id="language-select" class="pokedex-select">
               <option value="en" data-i18n="language.english">English</option>
               <option value="de" data-i18n="language.german">Deutsch</option>
             </select>
@@ -213,7 +213,7 @@
         <div id="load-more-controls" class="load-more-controls">
           <div class="load-amount-field">
             <label for="amountSelect" data-i18n="list.amount">Amount</label>
-            <select id="amountSelect" class="load-more-select">
+            <select id="amountSelect" class="load-more-select pokedex-select">
               <option value="20" selected>20</option>
               <option value="40">40</option>
               <option value="60">60</option>

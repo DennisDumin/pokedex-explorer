@@ -20,10 +20,19 @@ describe('translations', () => {
     expect(translate('de', 'list.loadMore', { count: 40 })).toBe(
       '40 weitere Pokémon laden',
     );
+    expect(translate('en', 'tcg.loadMore', { count: 8 })).toBe('Load 8 more');
+    expect(translate('de', 'tcg.loadMore', { count: 2 })).toBe('2 weitere laden');
+    expect(translate('de', 'tcg.loadedProgress', { shown: 8, total: 18 })).toBe(
+      '8 von 18 Karten geladen.',
+    );
+    expect(translate('en', 'matchups.title')).toBe('Weaknesses and resistances');
+    expect(translate('de', 'matchups.title')).toBe('Schwächen und Resistenzen');
   });
 
   it('uses English and key fallbacks for missing translations', () => {
-    expect(translate('de', 'language.english')).toBe('English');
+    expect(translate('de', 'language.english')).toBe('Englisch');
+    expect(translate('en', 'language.german')).toBe('Deutsch');
+    expect(translate('de', 'language.german')).toBe('Deutsch');
     expect(translate('de', 'missing.translation')).toBe('missing.translation');
   });
 

@@ -274,11 +274,13 @@ function generateTypeMatchupsHTML(typeResources) {
   }).join('');
 
   contentContainer.innerHTML = /* html */ `
-    <div class="matchups-intro">
-      <strong>${escapeHtml(t('matchups.title'))}</strong>
-      <p>${escapeHtml(t('matchups.description'))}</p>
-    </div>
-    <div class="matchup-list">${groups}</div>
+    <section class="matchups-panel" aria-labelledby="matchups-heading">
+      <header class="matchups-intro">
+        <h3 id="matchups-heading">${escapeHtml(t('matchups.title'))}</h3>
+        <p>${escapeHtml(t('matchups.description'))}</p>
+      </header>
+      <div class="matchup-list">${groups}</div>
+    </section>
   `;
 }
 
@@ -414,35 +416,30 @@ function generateTradingCardsHTML(
     return;
   }
 
-  const resultSummary =
-    totalCount > cards.length
-      ? t('tcg.showing', { shown: cards.length, total: totalCount })
-      : t(cards.length === 1 ? 'tcg.foundOne' : 'tcg.foundMany', {
-          count: cards.length,
-        });
-  const loadMoreMarkup =
+  const normalizedTotalCount = Math.max(cards.length, Number(totalCount) || cards.length);
+  const resultSummary = t(normalizedTotalCount === 1 ? 'tcg.foundOne' : 'tcg.foundMany', {
+    count: normalizedTotalCount,
+  });
+  const loadedProgress = t('tcg.loadedProgress', {
+    shown: cards.length,
+    total: normalizedTotalCount,
+  });
+  const loadMoreButtonMarkup =
     loadMoreCount > 0
       ? /* html */ `
-        <div class="tcg-load-more">
-          ${
-            loadMoreFailed
-              ? `<p class="tcg-load-more__error" role="alert">${escapeHtml(t('tcg.loadMoreFailed'))}</p>`
-              : ''
-          }
-          <button
-            type="button"
-            data-action="load-more-tcg"
-            data-idle-label="${escapeHtml(t('tcg.loadMore', { count: loadMoreCount }))}"
-            aria-controls="tcg-card-grid"
-            ${isLoadingMore ? 'disabled aria-disabled="true"' : ''}
-          >
-            ${escapeHtml(
-              isLoadingMore
-                ? t('tcg.loadingMore')
-                : t('tcg.loadMore', { count: loadMoreCount }),
-            )}
-          </button>
-        </div>
+        <button
+          type="button"
+          data-action="load-more-tcg"
+          data-idle-label="${escapeHtml(t('tcg.loadMore', { count: loadMoreCount }))}"
+          aria-controls="tcg-card-grid"
+          ${isLoadingMore ? 'disabled aria-disabled="true"' : ''}
+        >
+          ${escapeHtml(
+            isLoadingMore
+              ? t('tcg.loadingMore')
+              : t('tcg.loadMore', { count: loadMoreCount }),
+          )}
+        </button>
       `
       : '';
 
@@ -464,16 +461,32 @@ function generateTradingCardsHTML(
         </a>
       </div>
       <div id="tcg-card-grid" class="tcg-card-grid">${cards.map(generateTradingCardMarkup).join('')}</div>
-      ${loadMoreMarkup}
+      <div class="tcg-load-more">
+        <p
+          id="tcg-load-progress"
+          class="tcg-load-more__progress"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          ${escapeHtml(loadedProgress)}
+        </p>
+        ${
+          loadMoreFailed
+            ? `<p class="tcg-load-more__error" role="alert">${escapeHtml(t('tcg.loadMoreFailed'))}</p>`
+            : ''
+        }
+        ${loadMoreButtonMarkup}
+      </div>
     </section>
   `;
 
   if (restoreLoadMoreFocus) {
     const focusTarget =
       document.querySelector('[data-action="load-more-tcg"]') ??
-      document.getElementById('tcg-result-status');
+      document.getElementById('tcg-load-progress');
 
-    if (focusTarget?.id === 'tcg-result-status') focusTarget.tabIndex = -1;
+    if (focusTarget?.id === 'tcg-load-progress') focusTarget.tabIndex = -1;
     focusTarget?.focus({ preventScroll: true });
   }
 }

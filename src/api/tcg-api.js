@@ -4,6 +4,8 @@ const TCG_API_CARDS_URL = 'https://api.pokemontcg.io/v2/cards';
 const DEFAULT_PAGE_SIZE = 8;
 const MAX_PAGE_SIZE = 12;
 const TCG_REQUEST_TIMEOUT = 12000;
+const TCG_RETRY_DELAYS = Object.freeze([300, 600]);
+const RETRYABLE_TCG_STATUS_CODES = new Set([500, 502, 503, 504]);
 const CARD_FIELDS = [
   'id',
   'name',
@@ -49,6 +51,14 @@ function normalizeNationalPokedexId(value) {
 function normalizePageSize(value) {
   if (!Number.isSafeInteger(value) || value < 1 || value > MAX_PAGE_SIZE) {
     throw new RangeError(`Page size must be between 1 and ${MAX_PAGE_SIZE}.`);
+  }
+
+  return value;
+}
+
+function normalizePage(value) {
+  if (!Number.isSafeInteger(value) || value < 1) {
+    throw new RangeError('Page must be a positive integer.');
   }
 
   return value;
@@ -154,26 +164,45 @@ function normalizePokemonCards(response, pokemonId) {
   return { cards, totalCount };
 }
 
-function buildPokemonCardsUrl(pokemonId, { pageSize = DEFAULT_PAGE_SIZE } = {}) {
+function buildPokemonCardsUrl(
+  pokemonId,
+  { page = 1, pageSize = DEFAULT_PAGE_SIZE } = {},
+) {
   const nationalPokedexId = normalizeNationalPokedexId(pokemonId);
+  const normalizedPage = normalizePage(page);
   const normalizedPageSize = normalizePageSize(pageSize);
   const url = new URL(TCG_API_CARDS_URL);
 
   url.searchParams.set('q', `nationalPokedexNumbers:${nationalPokedexId}`);
+  url.searchParams.set('page', String(normalizedPage));
   url.searchParams.set('pageSize', String(normalizedPageSize));
   url.searchParams.set('select', CARD_FIELDS.join(','));
 
   return url.href;
 }
 
-async function fetchTcgJson(url) {
+function waitForTcgRetry(delay) {
+  return new Promise((resolve) => globalThis.setTimeout(resolve, delay));
+}
+
+function createResponseError(response, url) {
+  return new TcgApiError(
+    `The Pokémon TCG API request failed with status ${response.status}.`,
+    {
+      status: response.status,
+      statusText: response.statusText,
+      url,
+    },
+  );
+}
+
+async function fetchTcgResponse(url) {
   const controller = new AbortController();
   const timeoutId = globalThis.setTimeout(() => controller.abort(), TCG_REQUEST_TIMEOUT);
-  let response;
 
   try {
     try {
-      response = await fetch(url, {
+      return await fetch(url, {
         headers: { Accept: 'application/json' },
         signal: controller.signal,
       });
@@ -183,16 +212,27 @@ async function fetchTcgJson(url) {
         url,
       });
     }
+  } finally {
+    globalThis.clearTimeout(timeoutId);
+  }
+}
+
+async function fetchTcgJson(url) {
+  let response;
+
+  for (let attempt = 0; attempt <= TCG_RETRY_DELAYS.length; attempt += 1) {
+    response = await fetchTcgResponse(url);
 
     if (!response.ok) {
-      throw new TcgApiError(
-        `The Pokémon TCG API request failed with status ${response.status}.`,
-        {
-          status: response.status,
-          statusText: response.statusText,
-          url,
-        },
-      );
+      const error = createResponseError(response, url);
+      const canRetry =
+        RETRYABLE_TCG_STATUS_CODES.has(response.status) &&
+        attempt < TCG_RETRY_DELAYS.length;
+
+      if (!canRetry) throw error;
+
+      await waitForTcgRetry(TCG_RETRY_DELAYS[attempt]);
+      continue;
     }
 
     try {
@@ -205,18 +245,20 @@ async function fetchTcgJson(url) {
         url,
       });
     }
-  } finally {
-    globalThis.clearTimeout(timeoutId);
   }
+
+  throw createResponseError(response, url);
 }
 
-function getPokemonCards(pokemonId, { pageSize = DEFAULT_PAGE_SIZE } = {}) {
+function getPokemonCards(pokemonId, { page = 1, pageSize = DEFAULT_PAGE_SIZE } = {}) {
   const nationalPokedexId = normalizeNationalPokedexId(pokemonId);
+  const normalizedPage = normalizePage(page);
   const normalizedPageSize = normalizePageSize(pageSize);
-  const cacheKey = `${nationalPokedexId}:${normalizedPageSize}`;
+  const cacheKey = `${nationalPokedexId}:${normalizedPage}:${normalizedPageSize}`;
 
   return pokemonCardsCache.get(cacheKey, async () => {
     const url = buildPokemonCardsUrl(nationalPokedexId, {
+      page: normalizedPage,
       pageSize: normalizedPageSize,
     });
     const response = await fetchTcgJson(url);

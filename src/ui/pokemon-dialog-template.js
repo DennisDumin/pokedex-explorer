@@ -189,7 +189,7 @@ function generateVarietyPicker(varieties, currentPokemonId) {
   return /* html */ `
     <label class="variety-picker">
       <span>${t('detail.form')}</span>
-      <select data-action="change-variety" aria-label="${t('detail.chooseForm')}">
+      <select class="pokedex-select" data-action="change-variety" aria-label="${t('detail.chooseForm')}">
         ${options}
       </select>
     </label>

@@ -1,9 +1,8 @@
 const CACHE_PREFIX = 'pokedex-explorer';
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const APP_SHELL_CACHE = `${CACHE_PREFIX}-shell-${CACHE_VERSION}`;
 const API_CACHE = `${CACHE_PREFIX}-api-${CACHE_VERSION}`;
 const MEDIA_CACHE = `${CACHE_PREFIX}-media-${CACHE_VERSION}`;
-const API_NETWORK_TIMEOUT = 8000;
 
 const scopeUrl = new URL('./', self.registration.scope);
 const appShellUrls = [
@@ -118,36 +117,6 @@ async function cacheFirst(request, cacheName) {
   return networkResponse;
 }
 
-function fetchWithTimeout(request, timeout = API_NETWORK_TIMEOUT) {
-  const controller = new AbortController();
-  const timeoutId = globalThis.setTimeout(() => controller.abort(), timeout);
-
-  return fetch(request, { signal: controller.signal }).finally(() => {
-    globalThis.clearTimeout(timeoutId);
-  });
-}
-
-async function networkFirst(request, cacheName) {
-  try {
-    const networkResponse = await fetchWithTimeout(request);
-
-    if (!networkResponse.ok) {
-      return (await caches.match(request)) || networkResponse;
-    }
-
-    await putIfCacheable(cacheName, request, networkResponse);
-    return networkResponse;
-  } catch (error) {
-    const cachedResponse = await caches.match(request);
-
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-
-    throw error;
-  }
-}
-
 async function findNavigationFallback(request) {
   const cachedPage = await caches.match(request);
 
@@ -187,11 +156,15 @@ async function navigateWithAppShellFallback(request) {
   }
 }
 
-async function staleWhileRevalidate(request, event, options) {
+async function staleWhileRevalidate(
+  request,
+  event,
+  { cacheName = MEDIA_CACHE, ...cacheOptions } = {},
+) {
   const cachedResponse = await caches.match(request);
   const networkPromise = fetch(request)
     .then(async (networkResponse) => {
-      await putIfCacheable(MEDIA_CACHE, request, networkResponse, options);
+      await putIfCacheable(cacheName, request, networkResponse, cacheOptions);
       return networkResponse;
     })
     .catch((error) => {
@@ -290,7 +263,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isApiRequest(url)) {
-    event.respondWith(networkFirst(request, API_CACHE));
+    event.respondWith(staleWhileRevalidate(request, event, { cacheName: API_CACHE }));
     return;
   }
 

@@ -128,8 +128,11 @@ npm run check
 The central clients validate identifiers, check `response.ok`, normalize external
 data, cache completed responses, and deduplicate requests that are already in
 flight. Controlled concurrency prevents a large batch from firing every request
-at once. Media needed for a Pokémon list or detail dialog is decoded before the
-full-screen loader ends.
+at once. Static artwork needed for a Pokémon list is decoded before the
+full-screen loader ends; animated hover sprites continue warming the browser
+cache in the background. Focusing or briefly hovering a card prefetches its
+species, abilities, type data, evolution chain, and detail media so the dialog
+usually opens without another visible loading step.
 
 The language switch translates the interface, Pokémon names and types,
 measurements, status values, evolution conditions, and available PokéAPI species
@@ -146,11 +149,12 @@ after the first successful request.
 ## PWA and Offline Behavior
 
 The production build registers a dependency-free service worker. It caches the
-application shell, uses network-first behavior with cached fallbacks for API
-responses, and stale-while-revalidate for viewed media. A supported browser shows
-an **Install app** button only when its install criteria are met. A live status
-message also explains when the app is offline and confirms when the connection
-returns. The linked install manifest follows the selected interface language.
+application shell and uses stale-while-revalidate for API responses and viewed
+media. Repeat visits can therefore use cached content immediately while a fresh
+response is requested in the background. A supported browser shows an **Install
+app** button only when its install criteria are met. A live status message also
+explains when the app is offline and confirms when the connection returns. The
+linked install manifest follows the selected interface language.
 
 The first visit and uncached Pokémon still require an internet connection. Offline
 mode can reuse only application files and data/media that have already been cached.
