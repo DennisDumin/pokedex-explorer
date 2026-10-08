@@ -61,7 +61,7 @@ src/
 ├── api/                      API clients, validation, and request caches
 ├── data/                     Pinned localized Pokémon names
 ├── i18n/                     English/German messages and translation helpers
-├── pwa/                      Service-worker and install-prompt setup
+├── pwa/                      Service-worker registration
 ├── state/                    Pagination, collections, language, and view preferences
 ├── styles/                   Application, dialog, collection, and responsive styles
 ├── ui/                       Catalog, dialogs, templates, feedback, and interactions
@@ -151,10 +151,10 @@ after the first successful request.
 The production build registers a dependency-free service worker. It caches the
 application shell and uses stale-while-revalidate for API responses and viewed
 media. Repeat visits can therefore use cached content immediately while a fresh
-response is requested in the background. A supported browser shows an **Install
-app** button only when its install criteria are met. A live status message also
-explains when the app is offline and confirms when the connection returns. The
-linked install manifest follows the selected interface language.
+response is requested in the background. Installation remains available through
+supported browsers' own menus; the page does not show an install button. A live
+status message explains when the app is offline and confirms when the connection
+returns. The linked install manifest follows the selected interface language.
 
 The first visit and uncached Pokémon still require an internet connection. Offline
 mode can reuse only application files and data/media that have already been cached.

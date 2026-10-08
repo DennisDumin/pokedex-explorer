@@ -1,61 +1,53 @@
+import { readFileSync } from 'node:fs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-
-function createInstallEnvironment() {
-  const windowListeners = new Map();
-  const buttonListeners = new Map();
-  const installButton = {
-    addEventListener: vi.fn((type, listener) => buttonListeners.set(type, listener)),
-    disabled: false,
-    hidden: true,
-  };
-
-  vi.stubGlobal('window', {
-    addEventListener: vi.fn((type, listener) => windowListeners.set(type, listener)),
-  });
-  vi.stubGlobal('document', {
-    getElementById: vi.fn(() => installButton),
-  });
-
-  return { buttonListeners, installButton, windowListeners };
-}
 
 afterEach(() => {
   vi.resetModules();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
-describe('PWA install prompt', () => {
-  it('shows the install action only after the browser marks the app installable', async () => {
-    const { buttonListeners, installButton, windowListeners } =
-      createInstallEnvironment();
-    const { initInstallPrompt } = await import('../src/pwa/register-service-worker.js');
-    const installEvent = {
-      preventDefault: vi.fn(),
-      prompt: vi.fn().mockResolvedValue(undefined),
-      userChoice: Promise.resolve({ outcome: 'accepted' }),
-    };
+describe('PWA without an in-page install action', () => {
+  it('does not render or initialize an install button', () => {
+    const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+    const main = readFileSync(new URL('../src/main.js', import.meta.url), 'utf8');
 
-    initInstallPrompt();
-    windowListeners.get('beforeinstallprompt')(installEvent);
-
-    expect(installEvent.preventDefault).toHaveBeenCalledOnce();
-    expect(installButton.hidden).toBe(false);
-
-    await buttonListeners.get('click')();
-
-    expect(installEvent.prompt).toHaveBeenCalledOnce();
-    expect(installButton.disabled).toBe(false);
-    expect(installButton.hidden).toBe(true);
+    expect(html).not.toContain('install-app-button');
+    expect(html).not.toContain('actions.install');
+    expect(main).not.toContain('initInstallPrompt');
   });
 
-  it('initializes browser listeners only once', async () => {
-    const { installButton } = createInstallEnvironment();
-    const { initInstallPrompt } = await import('../src/pwa/register-service-worker.js');
+  it('still registers offline support for the deployed app scope', async () => {
+    vi.stubEnv('PROD', true);
+    const registration = {};
+    const register = vi.fn().mockResolvedValue(registration);
+    vi.stubGlobal('document', {
+      baseURI: 'https://example.com/projects/pokedex/',
+    });
+    vi.stubGlobal('navigator', {
+      serviceWorker: {
+        register,
+        ready: Promise.resolve(registration),
+        controller: {},
+      },
+    });
+    const { registerServiceWorker } =
+      await import('../src/pwa/register-service-worker.js');
 
-    initInstallPrompt();
-    initInstallPrompt();
+    expect(await registerServiceWorker()).toBe(registration);
+    expect(register).toHaveBeenCalledWith(
+      new URL('https://example.com/projects/pokedex/sw.js'),
+      { scope: 'https://example.com/projects/pokedex/', updateViaCache: 'none' },
+    );
+  });
 
-    expect(window.addEventListener).toHaveBeenCalledTimes(2);
-    expect(installButton.addEventListener).toHaveBeenCalledOnce();
+  it('skips registration in unsupported browsers', async () => {
+    vi.stubEnv('PROD', true);
+    vi.stubGlobal('document', {});
+    vi.stubGlobal('navigator', {});
+    const { registerServiceWorker } =
+      await import('../src/pwa/register-service-worker.js');
+
+    expect(await registerServiceWorker()).toBeNull();
   });
 });

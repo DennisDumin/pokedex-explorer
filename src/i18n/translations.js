@@ -48,7 +48,6 @@ const translations = {
     'list.allMatchesLoaded': 'All matching Pokémon are shown',
     'actions.surprise': 'Surprise me',
     'actions.daily': 'Pokémon of the day',
-    'actions.install': 'Install app',
     'actions.saved': 'Saved Pokémon',
     'loader.data': 'Loading Pokémon data',
     'errors.default':
@@ -321,7 +320,6 @@ const translations = {
     'list.allMatchesLoaded': 'Alle passenden Pokémon werden angezeigt',
     'actions.surprise': 'Überrasche mich',
     'actions.daily': 'Pokémon des Tages',
-    'actions.install': 'App installieren',
     'actions.saved': 'Gespeicherte Pokémon',
     'loader.data': 'Pokémon-Daten werden geladen',
     'errors.default':

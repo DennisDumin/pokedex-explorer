@@ -17,10 +17,7 @@ import { initConnectivityStatus } from './ui/connectivity-status.js';
 import { initExploreActions } from './ui/explore.js';
 import { initImageFallbacks } from './ui/image-fallback.js';
 import { initLanguageSwitcher } from './ui/language-switcher.js';
-import {
-  initInstallPrompt,
-  registerServiceWorker,
-} from './pwa/register-service-worker.js';
+import { registerServiceWorker } from './pwa/register-service-worker.js';
 
 async function bootstrap() {
   initLanguageSwitcher();
@@ -41,4 +38,3 @@ async function bootstrap() {
 }
 
 void bootstrap();
-initInstallPrompt();
